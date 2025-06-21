@@ -5,6 +5,8 @@ import {
   register,
 } from "../controllers/users.controller.js";
 import { verificarToken } from "./../middlewares/auth.middleware.js";
+import { verificarRol } from "./../middlewares/roles.middleware.js";
+import { ROLES } from "./../config/roles.js";
 
 const router = Router();
 
@@ -12,7 +14,7 @@ const router = Router();
 router.post("/login", login);
 
 // POST /api/users/register
-router.post("/register", register); // podría estar protegido para uso admin
+router.post("/register", verificarToken, verificarRol([ROLES.ADMIN]), register);
 
 router.get("/me", verificarToken, getProfile);
 
