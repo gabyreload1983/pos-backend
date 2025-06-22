@@ -4,9 +4,17 @@ import {
   obtenerVentas,
 } from "../models/ventas.model.js";
 import { registrarLog } from "../utils/logger.js";
+import { obtenerCajaAbierta } from "../models/caja.model.js";
 
-export async function registrarVenta(data, usuario_id) {
-  const venta_id = await crearVentaConDetalle({ ...data, usuario_id });
+export async function registrarVenta(data, usuario_id, sucursal_id) {
+  const caja = await obtenerCajaAbierta(sucursal_id);
+  if (!caja) throw new Error("No hay caja abierta en esta sucursal");
+
+  const venta_id = await crearVentaConDetalle({
+    ...data,
+    usuario_id,
+    caja_id: caja.id,
+  });
 
   await registrarLog({
     usuario_id,
