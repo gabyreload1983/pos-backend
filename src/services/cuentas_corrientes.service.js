@@ -1,7 +1,7 @@
 import { pool } from "../config/db.js";
 import {
   obtenerMovimientosPorCliente,
-  obtenerUltimoSaldo,
+  obtenerSaldoParcial,
   registrarMovimientoConSaldo,
 } from "../models/cuentas_corrientes.model.js";
 import { registrarLog } from "../utils/logger.js";
@@ -48,4 +48,33 @@ export async function nuevoMovimiento(data, usuario_id) {
     connection.release();
     throw error;
   }
+}
+
+export async function listarMovimientosFiltrados(cliente_id, desde, hasta) {
+  const movimientos = await obtenerMovimientosPorCliente(
+    cliente_id,
+    desde,
+    hasta
+  );
+  const saldoFinal = hasta
+    ? await obtenerSaldoParcial(cliente_id, hasta)
+    : movimientos.length > 0
+    ? movimientos[movimientos.length - 1].saldo
+    : 0;
+
+  const saldoInicial = desde
+    ? await obtenerSaldoParcial(
+        cliente_id,
+        new Date(new Date(desde).getTime() - 86400000)
+      )
+    : 0;
+
+  return {
+    cliente_id,
+    desde,
+    hasta,
+    saldo_inicial: saldoInicial,
+    saldo_final: saldoFinal,
+    movimientos,
+  };
 }
