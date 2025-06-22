@@ -12,6 +12,7 @@ import pagosRoutes from "./routes/pagos.routes.js";
 import cajaRoutes from "./routes/caja.routes.js";
 import arqueoRoutes from "./routes/arqueo.routes.js";
 import resumenRoutes from "./routes/resumen.routes.js";
+import estadisticasRoutes from "./routes/estadisticas.routes.js";
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.use("/api/pagos", pagosRoutes);
 app.use("/api/caja", cajaRoutes);
 app.use("/api/arqueo", arqueoRoutes);
 app.use("/api/resumen", resumenRoutes);
+app.use("/api/estadisticas", estadisticasRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
