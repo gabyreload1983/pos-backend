@@ -11,6 +11,7 @@ import cuentas_corrientesRoutes from "./routes/cuentas_corrientes.routes.js";
 import pagosRoutes from "./routes/pagos.routes.js";
 import cajaRoutes from "./routes/caja.routes.js";
 import arqueoRoutes from "./routes/arqueo.routes.js";
+import resumenRoutes from "./routes/resumen.routes.js";
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.use("/api/cuentas-corrientes", cuentas_corrientesRoutes);
 app.use("/api/pagos", pagosRoutes);
 app.use("/api/caja", cajaRoutes);
 app.use("/api/arqueo", arqueoRoutes);
+app.use("/api/resumen", resumenRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
