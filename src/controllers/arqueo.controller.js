@@ -1,5 +1,4 @@
-
-import { realizarArqueo, listarArqueos } from '../services/arqueo.service.js';
+import { realizarArqueo, listarArqueos } from "../services/arqueo.service.js";
 
 export async function postArqueo(req, res) {
   try {

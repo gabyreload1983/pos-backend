@@ -1,5 +1,4 @@
-
-import { generarResumenDiario } from '../services/resumen.service.js';
+import { generarResumenDiario } from "../services/resumen.service.js";
 
 export async function getResumenDiario(req, res) {
   try {

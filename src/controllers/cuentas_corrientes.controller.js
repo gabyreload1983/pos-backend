@@ -1,5 +1,7 @@
-
-import { listarMovimientos, nuevoMovimiento } from '../services/cuentas_corrientes.service.js';
+import {
+  listarMovimientos,
+  nuevoMovimiento,
+} from "../services/cuentas_corrientes.service.js";
 
 export async function getMovimientos(req, res) {
   try {
@@ -7,7 +9,7 @@ export async function getMovimientos(req, res) {
     const data = await listarMovimientos(cliente_id);
     res.json(data);
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener los movimientos' });
+    res.status(500).json({ error: "Error al obtener los movimientos" });
   }
 }
 
@@ -16,6 +18,6 @@ export async function postMovimiento(req, res) {
     const id = await nuevoMovimiento(req.body, req.user.id);
     res.status(201).json({ id });
   } catch (error) {
-    res.status(400).json({ error: 'Error al registrar el movimiento' });
+    res.status(400).json({ error: "Error al registrar el movimiento" });
   }
 }

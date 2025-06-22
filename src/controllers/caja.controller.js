@@ -1,10 +1,9 @@
-
 import {
   aperturaCaja,
   cierreCaja,
   movimientoCaja,
-  movimientosDeCaja
-} from '../services/caja.service.js';
+  movimientosDeCaja,
+} from "../services/caja.service.js";
 
 export async function abrir(req, res) {
   try {
@@ -18,7 +17,7 @@ export async function abrir(req, res) {
 export async function cerrar(req, res) {
   try {
     const id = await cierreCaja(req.body, req.user.id);
-    res.json({ id, message: 'Caja cerrada' });
+    res.json({ id, message: "Caja cerrada" });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }

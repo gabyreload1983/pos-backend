@@ -1,5 +1,4 @@
-
-import { pool } from '../config/db.js';
+import { pool } from "../config/db.js";
 
 export async function obtenerTotalesCaja(caja_id) {
   const [movs] = await pool.query(

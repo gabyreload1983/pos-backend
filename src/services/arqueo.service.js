@@ -1,16 +1,22 @@
+import { pool } from "../config/db.js";
+import {
+  obtenerTotalSistema,
+  registrarArqueo,
+  obtenerArqueosDeCaja,
+} from "../models/arqueo.model.js";
+import { obtenerCajaAbierta } from "../models/caja.model.js";
+import { registrarLog } from "../utils/logger.js";
 
-import { pool } from '../config/db.js';
-import { obtenerTotalSistema, registrarArqueo, obtenerArqueosDeCaja } from '../models/arqueo.model.js';
-import { obtenerCajaAbierta } from '../models/caja.model.js';
-import { registrarLog } from '../utils/logger.js';
-
-export async function realizarArqueo({ total_contado, observaciones }, usuario_id) {
+export async function realizarArqueo(
+  { total_contado, observaciones },
+  usuario_id
+) {
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
 
     const caja = await obtenerCajaAbierta(usuario_id);
-    if (!caja) throw new Error('No hay caja abierta');
+    if (!caja) throw new Error("No hay caja abierta");
 
     const total_sistema = await obtenerTotalSistema(caja.id);
     const diferencia = total_contado - total_sistema;
@@ -21,16 +27,16 @@ export async function realizarArqueo({ total_contado, observaciones }, usuario_i
       total_sistema,
       total_contado,
       diferencia,
-      observaciones
+      observaciones,
     });
 
     await registrarLog({
       usuario_id,
-      tabla: 'arqueos_caja',
-      accion: 'INSERT',
+      tabla: "arqueos_caja",
+      accion: "INSERT",
       descripcion: `Arqueo de caja ID ${id}`,
       registro_id: id,
-      datos_nuevos: { total_sistema, total_contado, diferencia, observaciones }
+      datos_nuevos: { total_sistema, total_contado, diferencia, observaciones },
     });
 
     await connection.commit();
@@ -45,6 +51,6 @@ export async function realizarArqueo({ total_contado, observaciones }, usuario_i
 
 export async function listarArqueos(usuario_id) {
   const caja = await obtenerCajaAbierta(usuario_id);
-  if (!caja) throw new Error('No hay caja abierta');
+  if (!caja) throw new Error("No hay caja abierta");
   return await obtenerArqueosDeCaja(caja.id);
 }

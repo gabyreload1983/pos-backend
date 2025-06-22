@@ -1,4 +1,4 @@
-import { pool } from '../config/db.js';
+import { pool } from "../config/db.js";
 
 export async function obtenerStockPorSucursal() {
   const [rows] = await pool.query(`
@@ -12,9 +12,10 @@ export async function obtenerStockPorSucursal() {
 }
 
 export async function ajustarStock({ articulo_id, sucursal_id, cantidad }) {
-  const [rows] = await pool.query(`
+  const [rows] = await pool.query(
+    `
     UPDATE stock SET cantidad = ? 
-    WHERE articulo_id = ? AND sucursal_id = ?`, 
+    WHERE articulo_id = ? AND sucursal_id = ?`,
     [cantidad, articulo_id, sucursal_id]
   );
   return rows.affectedRows;
@@ -28,7 +29,11 @@ export async function obtenerStockArticuloSucursal(articulo_id, sucursal_id) {
   return rows[0];
 }
 
-export async function crearRegistroStock({ articulo_id, sucursal_id, cantidad }) {
+export async function crearRegistroStock({
+  articulo_id,
+  sucursal_id,
+  cantidad,
+}) {
   const [result] = await pool.query(
     `INSERT INTO stock (articulo_id, sucursal_id, cantidad) VALUES (?, ?, ?)`,
     [articulo_id, sucursal_id, cantidad]
