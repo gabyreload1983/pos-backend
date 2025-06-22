@@ -1,4 +1,4 @@
-import { obtenerCajaAbierta } from "../models/caja.model.js";
+import { obtenerCajaAbierta } from "../models/cajas.model.js";
 import {
   obtenerTotalesCaja,
   obtenerTotalesVentas,

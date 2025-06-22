@@ -3,7 +3,7 @@ import {
   cierreCaja,
   movimientoCaja,
   movimientosDeCaja,
-} from "../services/caja.service.js";
+} from "../services/cajas.service.js";
 
 export async function abrir(req, res) {
   try {

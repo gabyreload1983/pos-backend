@@ -4,7 +4,7 @@ import {
   cerrar,
   nuevoMovimiento,
   listarMovimientos,
-} from "../controllers/caja.controller.js";
+} from "../controllers/cajas.controller.js";
 import { verificarToken } from "../middlewares/auth.middleware.js";
 import { verificarRol } from "../middlewares/roles.middleware.js";
 import { ROLES } from "../config/roles.js";

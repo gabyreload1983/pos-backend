@@ -4,7 +4,7 @@ import {
   registrarArqueo,
   obtenerArqueosDeCaja,
 } from "../models/arqueo.model.js";
-import { obtenerCajaAbierta } from "../models/caja.model.js";
+import { obtenerCajaAbierta } from "../models/cajas.model.js";
 import { registrarLog } from "../utils/logger.js";
 
 export async function realizarArqueo(

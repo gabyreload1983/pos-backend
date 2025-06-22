@@ -5,7 +5,7 @@ import {
   registrarMovimientoCaja,
   obtenerCajaAbierta,
   obtenerMovimientos,
-} from "../models/caja.model.js";
+} from "../models/cajas.model.js";
 import { registrarLog } from "../utils/logger.js";
 
 export async function aperturaCaja(

@@ -4,7 +4,7 @@ import {
   obtenerVentas,
 } from "../models/ventas.model.js";
 import { registrarLog } from "../utils/logger.js";
-import { obtenerCajaAbierta } from "../models/caja.model.js";
+import { obtenerCajaAbierta } from "../models/cajas.model.js";
 
 export async function registrarVenta(data, usuario_id, sucursal_id) {
   const caja = await obtenerCajaAbierta(sucursal_id);
