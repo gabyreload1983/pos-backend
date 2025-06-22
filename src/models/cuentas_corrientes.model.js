@@ -1,13 +1,5 @@
 import { pool } from "../config/db.js";
 
-export async function obtenerMovimientosPorCliente(cliente_id) {
-  const [rows] = await pool.query(
-    "SELECT * FROM cuentas_corrientes WHERE cliente_id = ? ORDER BY fecha ASC, id ASC",
-    [cliente_id]
-  );
-  return rows;
-}
-
 export async function registrarMovimientoConSaldo(connection, data) {
   const [result] = await connection.query(
     "INSERT INTO cuentas_corrientes (cliente_id, fecha, tipo, concepto, monto, saldo) VALUES (?, ?, ?, ?, ?, ?)",
