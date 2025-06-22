@@ -1,5 +1,6 @@
 import {
   topArticulos,
+  topClientes,
   ventasPorDia,
 } from "../services/estadisticas.service.js";
 
@@ -17,6 +18,16 @@ export async function getTopArticulos(req, res) {
   try {
     const { desde, hasta, limite } = req.query;
     const data = await topArticulos(desde, hasta, limite);
+    res.json(data);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+}
+
+export async function getTopClientes(req, res) {
+  try {
+    const { desde, hasta, limite } = req.query;
+    const data = await topClientes(desde, hasta, limite);
     res.json(data);
   } catch (error) {
     res.status(400).json({ error: error.message });

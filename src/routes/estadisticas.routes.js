@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   getTopArticulos,
+  getTopClientes,
   getVentasPorDia,
 } from "../controllers/estadisticas.controller.js";
 import { verificarToken } from "../middlewares/auth.middleware.js";
@@ -22,6 +23,12 @@ router.get(
   "/top-articulos",
   verificarRol([ROLES.ADMIN, ROLES.VENDEDOR]),
   getTopArticulos
+);
+
+router.get(
+  "/top-clientes",
+  verificarRol([ROLES.ADMIN, ROLES.VENDEDOR]),
+  getTopClientes
 );
 
 export default router;

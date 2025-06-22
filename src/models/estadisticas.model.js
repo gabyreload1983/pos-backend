@@ -26,3 +26,17 @@ export async function obtenerTopArticulos(desde, hasta, limite = 10) {
   );
   return rows;
 }
+
+export async function obtenerTopClientes(desde, hasta, limite = 10) {
+  const [rows] = await pool.query(
+    `SELECT c.nombre, SUM(v.total) AS total_facturado, COUNT(v.id) AS cantidad_ventas
+     FROM ventas v
+     JOIN clientes c ON v.cliente_id = c.id
+     WHERE v.fecha BETWEEN ? AND ?
+     GROUP BY c.id
+     ORDER BY total_facturado DESC
+     LIMIT ?`,
+    [desde, hasta, parseInt(limite)]
+  );
+  return rows;
+}
