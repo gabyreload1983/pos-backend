@@ -40,3 +40,57 @@ export async function crearRegistroStock({
   );
   return result.insertId;
 }
+
+// Actualiza el stock total en la tabla stock
+export async function actualizarStock(
+  connection,
+  articulo_id,
+  sucursal_id,
+  cantidad
+) {
+  const [rows] = await connection.query(
+    `SELECT * FROM stock WHERE articulo_id = ? AND sucursal_id = ?`,
+    [articulo_id, sucursal_id]
+  );
+
+  if (rows.length > 0) {
+    await connection.query(
+      `UPDATE stock SET cantidad = cantidad + ? WHERE articulo_id = ? AND sucursal_id = ?`,
+      [cantidad, articulo_id, sucursal_id]
+    );
+  } else {
+    await connection.query(
+      `INSERT INTO stock (articulo_id, sucursal_id, cantidad) VALUES (?, ?, ?)`,
+      [articulo_id, sucursal_id, cantidad]
+    );
+  }
+}
+
+// Registra el movimiento de entrada de stock
+export async function registrarMovimientoStock(connection, data) {
+  await connection.query(
+    `INSERT INTO movimientos_stock (articulo_id, sucursal_id, cantidad, tipo, origen, origen_id)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    [
+      data.articulo_id,
+      data.sucursal_id,
+      data.cantidad,
+      "entrada", // <- fijo porque es una compra
+      "compra",
+      data.compra_id,
+    ]
+  );
+}
+
+export async function obtenerComprasPorProveedor(proveedor_id) {
+  const [rows] = await pool.query(
+    `SELECT c.id, c.fecha, c.tipo_comprobante, c.nro_comprobante, c.total, c.tipo_pago,
+            u.nombre AS usuario
+     FROM compras c
+     JOIN usuarios u ON c.usuario_id = u.id
+     WHERE c.proveedor_id = ?
+     ORDER BY c.fecha DESC, c.id DESC`,
+    [proveedor_id]
+  );
+  return rows;
+}
