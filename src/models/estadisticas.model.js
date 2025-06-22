@@ -11,3 +11,18 @@ export async function obtenerVentasPorDia(desde, hasta) {
   );
   return rows;
 }
+
+export async function obtenerTopArticulos(desde, hasta, limite = 10) {
+  const [rows] = await pool.query(
+    `SELECT a.descripcion AS articulo, SUM(dv.cantidad) AS total_vendido, SUM(dv.subtotal) AS total_facturado
+     FROM detalle_venta dv
+     JOIN ventas v ON dv.venta_id = v.id
+     JOIN articulos a ON dv.articulo_id = a.id
+     WHERE v.fecha BETWEEN ? AND ?
+     GROUP BY a.id
+     ORDER BY total_vendido DESC
+     LIMIT ?`,
+    [desde, hasta, parseInt(limite)]
+  );
+  return rows;
+}
