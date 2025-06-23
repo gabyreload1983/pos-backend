@@ -13,6 +13,8 @@ import cajasRoutes from "./routes/cajas.routes.js";
 import arqueoRoutes from "./routes/arqueo.routes.js";
 import resumenRoutes from "./routes/resumen.routes.js";
 import estadisticasRoutes from "./routes/estadisticas.routes.js";
+import provinciasRoutes from "./routes/provincias.routes.js";
+import ciudadesRoutes from "./routes/ciudades.routes.js";
 
 const app = express();
 
@@ -31,6 +33,9 @@ app.use("/api/cajas", cajasRoutes);
 app.use("/api/arqueo", arqueoRoutes);
 app.use("/api/resumen", resumenRoutes);
 app.use("/api/estadisticas", estadisticasRoutes);
+
+app.use("/api/provincias", provinciasRoutes);
+app.use("/api/ciudades", ciudadesRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

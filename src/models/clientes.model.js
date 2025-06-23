@@ -37,6 +37,24 @@ export async function crearCliente(data) {
     cuit,
   } = data;
 
+  // Validar que provincia exista
+  const [provincia] = await pool.query(
+    "SELECT id FROM provincias WHERE id = ?",
+    [provincia_id]
+  );
+  if (provincia.length === 0) {
+    throw new Error("Provincia inválida");
+  }
+
+  // Validar que ciudad exista
+  const [ciudad] = await pool.query("SELECT id FROM ciudades WHERE id = ?", [
+    ciudad_id,
+  ]);
+  if (ciudad.length === 0) {
+    throw new Error("Ciudad inválida");
+  }
+
+  // Insertar cliente
   const [result] = await pool.query(
     `
     INSERT INTO clientes (
@@ -65,6 +83,29 @@ export async function crearCliente(data) {
 }
 
 export async function actualizarCliente(id, data) {
+  const { provincia_id, ciudad_id } = data;
+
+  // Validar provincia
+  const [provincia] = await pool.query(
+    "SELECT id FROM provincias WHERE id = ?",
+    [provincia_id]
+  );
+  console.log("Provincia:", provincia);
+
+  if (provincia.length === 0) {
+    throw new Error("Provincia inválida");
+  }
+
+  // Validar ciudad
+  const [ciudad] = await pool.query("SELECT id FROM ciudades WHERE id = ?", [
+    ciudad_id,
+  ]);
+  console.log("Ciudad:", ciudad);
+
+  if (ciudad.length === 0) {
+    throw new Error("Ciudad inválida");
+  }
+
   const [result] = await pool.query(`UPDATE clientes SET ? WHERE id = ?`, [
     data,
     id,
