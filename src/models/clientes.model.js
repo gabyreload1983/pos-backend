@@ -90,7 +90,6 @@ export async function actualizarCliente(id, data) {
     "SELECT id FROM provincias WHERE id = ?",
     [provincia_id]
   );
-  console.log("Provincia:", provincia);
 
   if (provincia.length === 0) {
     throw new Error("Provincia inválida");
@@ -100,7 +99,6 @@ export async function actualizarCliente(id, data) {
   const [ciudad] = await pool.query("SELECT id FROM ciudades WHERE id = ?", [
     ciudad_id,
   ]);
-  console.log("Ciudad:", ciudad);
 
   if (ciudad.length === 0) {
     throw new Error("Ciudad inválida");

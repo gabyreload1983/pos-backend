@@ -1,3 +1,4 @@
+import { parseClienteDTO } from "../dto/cliente.dto.js";
 import {
   listarClientes,
   obtenerCliente,
@@ -28,7 +29,8 @@ export async function getCliente(req, res) {
 
 export async function createCliente(req, res) {
   try {
-    const id = await nuevoCliente(req.body, req.user.id);
+    const clienteData = parseClienteDTO(req.body);
+    const id = await nuevoCliente(clienteData, req.user.id);
     res.status(201).json({ id });
   } catch (error) {
     res.status(400).json({ error: "Error al crear el cliente" });
@@ -37,9 +39,10 @@ export async function createCliente(req, res) {
 
 export async function updateCliente(req, res) {
   try {
+    const clienteData = parseClienteDTO(req.body);
     const updated = await modificarCliente(
       req.params.id,
-      req.body,
+      clienteData,
       req.user.id
     );
     if (!updated)
