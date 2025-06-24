@@ -36,21 +36,3 @@ export const clienteSchema = z.object({
   cuit: z.string().optional().nullable(),
   activo: z.boolean().optional(),
 });
-
-// Función DTO: valida y transforma
-export function clienteDto(data) {
-  const result = clienteSchema.safeParse(data);
-
-  if (!result.success) {
-    const errores = result.error.errors.map((err) => ({
-      campo: err.path[0],
-      mensaje: err.message,
-    }));
-    const error = new Error("Error de validación");
-    error.status = 400;
-    error.errores = errores;
-    throw error;
-  }
-
-  return result.data;
-}
