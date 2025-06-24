@@ -7,37 +7,37 @@ import {
   borrarCliente,
 } from "../services/clientes.service.js";
 
-export async function getClientes(req, res) {
+export async function getClientes(req, res, next) {
   try {
     const clientes = await listarClientes();
     res.json(clientes);
   } catch (error) {
-    res.status(500).json({ error: "Error al obtener los clientes" });
+    next(error);
   }
 }
 
-export async function getCliente(req, res) {
+export async function getCliente(req, res, next) {
   try {
     const cliente = await obtenerCliente(req.params.id);
     if (!cliente)
       return res.status(404).json({ error: "Cliente no encontrado" });
     res.json(cliente);
   } catch (error) {
-    res.status(500).json({ error: "Error al obtener el cliente" });
+    next(error);
   }
 }
 
-export async function createCliente(req, res) {
+export async function createCliente(req, res, next) {
   try {
     const clienteData = parseClienteDTO(req.body);
     const id = await nuevoCliente(clienteData, req.user.id);
     res.status(201).json({ id });
   } catch (error) {
-    res.status(400).json({ error: "Error al crear el cliente" });
+    next(error);
   }
 }
 
-export async function updateCliente(req, res) {
+export async function updateCliente(req, res, next) {
   try {
     const clienteData = parseClienteDTO(req.body);
     const updated = await modificarCliente(
@@ -49,17 +49,17 @@ export async function updateCliente(req, res) {
       return res.status(404).json({ error: "Cliente no encontrado" });
     res.json({ message: "Cliente actualizado" });
   } catch (error) {
-    res.status(400).json({ error: "Error al actualizar el cliente" });
+    next(error);
   }
 }
 
-export async function deleteCliente(req, res) {
+export async function deleteCliente(req, res, next) {
   try {
     const deleted = await borrarCliente(req.params.id, req.user.id);
     if (!deleted)
       return res.status(404).json({ error: "Cliente no encontrado" });
     res.json({ message: "Cliente eliminado" });
   } catch (error) {
-    res.status(500).json({ error: "Error al eliminar el cliente" });
+    next(error);
   }
 }

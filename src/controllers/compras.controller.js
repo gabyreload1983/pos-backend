@@ -5,38 +5,38 @@ import {
   registrarCompra,
 } from "../services/compras.service.js";
 
-export async function createCompra(req, res) {
+export async function createCompra(req, res, next) {
   try {
     const compra_id = await registrarCompra(req.body, req.user.id);
     res.status(201).json({ compra_id });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    next(error);
   }
 }
 
-export async function getCompras(req, res) {
+export async function getCompras(req, res, next) {
   try {
     const data = await listarCompras();
     res.json(data);
   } catch (error) {
-    res.status(500).json({ error: "Error al obtener las compras" });
+    next(error);
   }
 }
 
-export async function getCompraById(req, res) {
+export async function getCompraById(req, res, next) {
   try {
     const data = await getCompra(req.params.id);
     res.json(data);
   } catch (error) {
-    res.status(404).json({ error: "Compra no encontrada" });
+    next(error);
   }
 }
 
-export async function getComprasByProveedor(req, res) {
+export async function getComprasByProveedor(req, res, next) {
   try {
     const data = await getComprasProveedor(req.params.id);
     res.json(data);
   } catch (error) {
-    res.status(400).json({ error: "Error al obtener compras del proveedor" });
+    next(error);
   }
 }

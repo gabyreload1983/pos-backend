@@ -2,7 +2,7 @@ import { findUserById } from "../models/users.model.js";
 import { loginUser, registrarUsuario } from "../services/users.service.js";
 import { registrarLog } from "../utils/logger.js";
 
-export async function login(req, res) {
+export async function login(req, res, next) {
   try {
     const { email, password } = req.body;
     const data = await loginUser(email, password);
@@ -15,11 +15,11 @@ export async function login(req, res) {
 
     res.json(data);
   } catch (error) {
-    res.status(401).json({ error: error.message });
+    next(error);
   }
 }
 
-export async function register(req, res) {
+export async function register(req, res, next) {
   try {
     const { nombre, email, password, rol_id } = req.body;
     const nuevoUsuario = await registrarUsuario({
@@ -40,15 +40,15 @@ export async function register(req, res) {
 
     res.status(201).json(nuevoUsuario);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    next(error);
   }
 }
 
-export async function getProfile(req, res) {
+export async function getProfile(req, res, next) {
   try {
     const usuario = await findUserById(req.user.id);
     res.json(usuario);
   } catch (error) {
-    res.status(404).json({ error: "Usuario no encontrado" });
+    next(error);
   }
 }

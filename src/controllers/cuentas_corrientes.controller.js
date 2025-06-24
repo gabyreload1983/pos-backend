@@ -4,26 +4,26 @@ import {
   nuevoMovimiento,
 } from "../services/cuentas_corrientes.service.js";
 
-export async function getMovimientos(req, res) {
+export async function getMovimientos(req, res, next) {
   try {
     const cliente_id = req.params.id;
     const data = await listarMovimientos(cliente_id);
     res.json(data);
   } catch (error) {
-    res.status(500).json({ error: "Error al obtener los movimientos" });
+    next(error);
   }
 }
 
-export async function postMovimiento(req, res) {
+export async function postMovimiento(req, res, next) {
   try {
     const id = await nuevoMovimiento(req.body, req.user.id);
     res.status(201).json({ id });
   } catch (error) {
-    res.status(400).json({ error: "Error al registrar el movimiento" });
+    next(error);
   }
 }
 
-export async function getMovimientosFiltrados(req, res) {
+export async function getMovimientosFiltrados(req, res, next) {
   try {
     const cliente_id = req.params.id;
     const { desde, hasta } = req.query;
@@ -31,8 +31,6 @@ export async function getMovimientosFiltrados(req, res) {
     const data = await listarMovimientosFiltrados(cliente_id, desde, hasta);
     res.json(data);
   } catch (error) {
-    res
-      .status(400)
-      .json({ error: "Error al obtener los movimientos filtrados" });
+    next(error);
   }
 }
