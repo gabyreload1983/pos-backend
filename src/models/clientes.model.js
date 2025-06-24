@@ -1,4 +1,5 @@
 import { pool } from "../config/db.js";
+import { ApiError } from "../utils/ApiError.js";
 
 export async function obtenerClientes() {
   const [rows] = await pool.query(`
@@ -43,12 +44,9 @@ export async function crearCliente(data) {
     [provincia_id]
   );
   if (provincia.length === 0) {
-    const error = new Error("Provincia inválida");
-    error.status = 400;
-    error.errores = [
+    throw ApiError.validation([
       { campo: "provincia_id", mensaje: "Provincia inexistente" },
-    ];
-    throw error;
+    ]);
   }
 
   // Validar que ciudad exista
@@ -56,10 +54,9 @@ export async function crearCliente(data) {
     ciudad_id,
   ]);
   if (ciudad.length === 0) {
-    const error = new Error("Ciudad inválida");
-    error.status = 400;
-    error.errores = [{ campo: "ciudad_id", mensaje: "Ciudad inexistente" }];
-    throw error;
+    throw ApiError.validation([
+      { campo: "ciudad_id", mensaje: "Ciudad inexistente" },
+    ]);
   }
 
   // Insertar cliente
@@ -98,12 +95,9 @@ export async function actualizarCliente(id, data) {
     [provincia_id]
   );
   if (provincia.length === 0) {
-    const error = new Error("Provincia inválida");
-    error.status = 400;
-    error.errores = [
+    throw ApiError.validation([
       { campo: "provincia_id", mensaje: "Provincia inexistente" },
-    ];
-    throw error;
+    ]);
   }
 
   const [ciudad] = await pool.query("SELECT id FROM ciudades WHERE id = ?", [
@@ -111,10 +105,9 @@ export async function actualizarCliente(id, data) {
   ]);
 
   if (ciudad.length === 0) {
-    const error = new Error("Ciudad inválida");
-    error.status = 400;
-    error.errores = [{ campo: "ciudad_id", mensaje: "Ciudad inexistente" }];
-    throw error;
+    throw ApiError.validation([
+      { campo: "ciudad_id", mensaje: "Ciudad inexistente" },
+    ]);
   }
 
   const [result] = await pool.query(`UPDATE clientes SET ? WHERE id = ?`, [
