@@ -1,4 +1,4 @@
-import { parseClienteDTO } from "../dto/cliente.dto.js";
+import { clienteDto } from "../dto/cliente.dto.js";
 import {
   listarClientes,
   obtenerCliente,
@@ -29,7 +29,7 @@ export async function getCliente(req, res, next) {
 
 export async function createCliente(req, res, next) {
   try {
-    const clienteData = parseClienteDTO(req.body);
+    const clienteData = clienteDto(req.body);
     const id = await nuevoCliente(clienteData, req.user.id);
     res.status(201).json({ id });
   } catch (error) {
@@ -39,7 +39,7 @@ export async function createCliente(req, res, next) {
 
 export async function updateCliente(req, res, next) {
   try {
-    const clienteData = parseClienteDTO(req.body);
+    const clienteData = clienteDto(req.body);
     const updated = await modificarCliente(
       req.params.id,
       clienteData,
