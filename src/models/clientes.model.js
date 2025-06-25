@@ -33,51 +33,54 @@ export async function crearCliente(data) {
     direccion,
     ciudad_id,
     provincia_id,
-    pais,
     condicion_iva,
     cuit,
   } = data;
 
-  // Validar que provincia exista
-  const [provincia] = await pool.query(
-    "SELECT id FROM provincias WHERE id = ?",
-    [provincia_id]
-  );
-  if (provincia.length === 0) {
-    throw ApiError.validation([
-      { campo: "provincia_id", mensaje: "Provincia inexistente" },
-    ]);
+  // Validar que provincia exista si viene
+  if (provincia_id !== null && provincia_id !== undefined) {
+    const [provincia] = await pool.query(
+      "SELECT id FROM provincias WHERE id = ?",
+      [provincia_id]
+    );
+    if (provincia.length === 0) {
+      throw ApiError.validation([
+        { campo: "provincia_id", mensaje: "Provincia inexistente" },
+      ]);
+    }
   }
 
-  // Validar que ciudad exista
-  const [ciudad] = await pool.query("SELECT id FROM ciudades WHERE id = ?", [
-    ciudad_id,
-  ]);
-  if (ciudad.length === 0) {
-    throw ApiError.validation([
-      { campo: "ciudad_id", mensaje: "Ciudad inexistente" },
+  // Validar que ciudad exista si viene
+  if (ciudad_id !== null && ciudad_id !== undefined) {
+    const [ciudad] = await pool.query("SELECT id FROM ciudades WHERE id = ?", [
+      ciudad_id,
     ]);
+    if (ciudad.length === 0) {
+      throw ApiError.validation([
+        { campo: "ciudad_id", mensaje: "Ciudad inexistente" },
+      ]);
+    }
   }
 
-  const [existeEmail] = await pool.query(
-    "SELECT id FROM clientes WHERE email = ?",
-    [email]
-  );
-
-  if (existeEmail.length > 0) {
-    throw ApiError.validation([
-      { campo: "email", mensaje: "Ya existe un cliente con ese email" },
-    ]);
+  // Validar email único si se envía
+  if (email) {
+    const [existe] = await pool.query(
+      "SELECT id FROM clientes WHERE email = ?",
+      [email]
+    );
+    if (existe.length > 0) {
+      throw ApiError.validation([
+        { campo: "email", mensaje: "Ya existe un cliente con ese email" },
+      ]);
+    }
   }
 
-  // Insertar cliente
   const [result] = await pool.query(
-    `
-    INSERT INTO clientes (
+    `INSERT INTO clientes (
       nombre, apellido, razon_social, tipo_documento, numero_documento,
       email, telefono, direccion, ciudad_id, provincia_id,
-      pais, condicion_iva, cuit
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      condicion_iva, cuit
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       nombre,
       apellido,
@@ -89,7 +92,6 @@ export async function crearCliente(data) {
       direccion,
       ciudad_id,
       provincia_id,
-      pais,
       condicion_iva,
       cuit,
     ]
@@ -101,33 +103,35 @@ export async function crearCliente(data) {
 export async function actualizarCliente(id, data) {
   const { provincia_id, ciudad_id, email } = data;
 
-  const [provincia] = await pool.query(
-    "SELECT id FROM provincias WHERE id = ?",
-    [provincia_id]
-  );
-  if (provincia.length === 0) {
-    throw ApiError.validation([
-      { campo: "provincia_id", mensaje: "Provincia inexistente" },
-    ]);
+  if (provincia_id !== null && provincia_id !== undefined) {
+    const [provincia] = await pool.query(
+      "SELECT id FROM provincias WHERE id = ?",
+      [provincia_id]
+    );
+    if (provincia.length === 0) {
+      throw ApiError.validation([
+        { campo: "provincia_id", mensaje: "Provincia inexistente" },
+      ]);
+    }
   }
 
-  const [ciudad] = await pool.query("SELECT id FROM ciudades WHERE id = ?", [
-    ciudad_id,
-  ]);
-
-  if (ciudad.length === 0) {
-    throw ApiError.validation([
-      { campo: "ciudad_id", mensaje: "Ciudad inexistente" },
+  if (ciudad_id !== null && ciudad_id !== undefined) {
+    const [ciudad] = await pool.query("SELECT id FROM ciudades WHERE id = ?", [
+      ciudad_id,
     ]);
+    if (ciudad.length === 0) {
+      throw ApiError.validation([
+        { campo: "ciudad_id", mensaje: "Ciudad inexistente" },
+      ]);
+    }
   }
 
   if (email) {
-    const [emailEnUso] = await pool.query(
+    const [duplicado] = await pool.query(
       "SELECT id FROM clientes WHERE email = ? AND id != ?",
       [email, id]
     );
-
-    if (emailEnUso.length > 0) {
+    if (duplicado.length > 0) {
       throw ApiError.validation([
         {
           campo: "email",

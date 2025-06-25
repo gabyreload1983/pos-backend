@@ -1,30 +1,33 @@
 import { z } from "zod";
 
-// Schema de validación con Zod
-export const clienteSchema = z.object({
-  nombre: z.string().min(1, "El nombre es obligatorio"),
-  apellido: z.string().min(1, "El apellido es obligatorio"),
+// Campos comunes
+const camposComunes = {
   razon_social: z.string().optional().nullable(),
-  tipo_documento: z.enum(["DNI", "CUIT", "CUIL", "Pasaporte"]).optional(),
+  tipo_documento: z
+    .enum(["DNI", "CUIT", "CUIL", "Pasaporte"])
+    .default("DNI")
+    .optional(),
   numero_documento: z.string().optional().nullable(),
-  email: z.string().email("Email inválido").optional().nullable(),
+  email: z
+    .string()
+    .email("Email inválido")
+    .optional()
+    .nullable()
+    .transform((val) => (val === "" ? null : val)),
   telefono: z.string().optional().nullable(),
   direccion: z.string().optional().nullable(),
-  ciudad_id: z
-    .number({
-      required_error: "La ciudad es obligatoria",
-      invalid_type_error: "Debe ser un número",
-    })
-    .int()
-    .positive(),
   provincia_id: z
-    .number({
-      required_error: "La provincia es obligatoria",
-      invalid_type_error: "Debe ser un número",
-    })
+    .number({ invalid_type_error: "Debe ser un número" })
     .int()
-    .positive(),
-  pais: z.string().optional().default("Argentina"),
+    .positive()
+    .nullable()
+    .optional(),
+  ciudad_id: z
+    .number({ invalid_type_error: "Debe ser un número" })
+    .int()
+    .positive()
+    .nullable()
+    .optional(),
   condicion_iva: z
     .enum([
       "Responsable Inscripto",
@@ -32,7 +35,20 @@ export const clienteSchema = z.object({
       "Consumidor Final",
       "Exento",
     ])
+    .default("Consumidor Final")
     .optional(),
   cuit: z.string().optional().nullable(),
-  activo: z.number().optional(),
+  activo: z.boolean().default(true).optional(),
+};
+
+export const createClienteSchema = z.object({
+  nombre: z.string().min(1, "El nombre es obligatorio"),
+  apellido: z.string().min(1, "El apellido es obligatorio"),
+  ...camposComunes,
+});
+
+export const updateClienteSchema = z.object({
+  nombre: z.string().min(1, "El nombre es obligatorio").optional(),
+  apellido: z.string().min(1, "El apellido es obligatorio").optional(),
+  ...camposComunes,
 });

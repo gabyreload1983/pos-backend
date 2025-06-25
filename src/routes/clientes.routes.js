@@ -11,7 +11,10 @@ import { verificarToken } from "../middlewares/auth.middleware.js";
 import { verificarRol } from "../middlewares/roles.middleware.js";
 import { ROLES } from "../config/roles.js";
 import { validateDto } from "../middlewares/validateDto.js";
-import { clienteSchema } from "../dto/cliente.dto.js";
+import {
+  createClienteSchema,
+  updateClienteSchema,
+} from "../dto/cliente.dto.js";
 
 const router = Router();
 
@@ -21,16 +24,17 @@ router.use(verificarToken);
 // Rutas accesibles a ADMIN y VENDEDOR
 router.get("/", verificarRol([ROLES.ADMIN, ROLES.VENDEDOR]), getClientes);
 router.get("/:id", verificarRol([ROLES.ADMIN, ROLES.VENDEDOR]), getCliente);
+
 router.post(
   "/",
   verificarRol([ROLES.ADMIN, ROLES.VENDEDOR]),
-  validateDto(clienteSchema),
+  validateDto(createClienteSchema),
   createCliente
 );
 router.put(
   "/:id",
   verificarRol([ROLES.ADMIN, ROLES.VENDEDOR]),
-  validateDto(clienteSchema),
+  validateDto(updateClienteSchema),
   updateCliente
 );
 
