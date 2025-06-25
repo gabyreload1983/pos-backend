@@ -38,7 +38,7 @@ const camposComunes = {
     .default("Consumidor Final")
     .optional(),
   cuit: z.string().optional().nullable(),
-  activo: z.boolean().default(true).optional(),
+  activo: z.union([z.literal(1), z.literal(0)]).optional(),
 };
 
 export const createClienteSchema = z.object({
