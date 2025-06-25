@@ -21,7 +21,7 @@ export async function login(req, res, next) {
 
 export async function register(req, res, next) {
   try {
-    const { nombre, email, password, rol_id } = req.body;
+    const { nombre, email, password, rol_id } = req.validatedData;
     const nuevoUsuario = await registrarUsuario({
       nombre,
       email,

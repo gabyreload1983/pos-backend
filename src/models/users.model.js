@@ -19,10 +19,16 @@ export async function findUserById(id) {
 }
 
 // Crear usuario nuevo
-export async function createUser({ nombre, email, password, rol_id }) {
+export async function createUser({
+  nombre,
+  email,
+  password,
+  rol_id,
+  activo = 1,
+}) {
   const [result] = await pool.query(
-    `INSERT INTO usuarios (nombre, email, password, rol_id) VALUES (?, ?, ?, ?)`,
-    [nombre, email, password, rol_id]
+    `INSERT INTO usuarios (nombre, email, password, rol_id, activo) VALUES (?, ?, ?, ?, ?)`,
+    [nombre, email, password, rol_id, activo]
   );
   return result.insertId;
 }

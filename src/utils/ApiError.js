@@ -16,6 +16,4 @@ export class ApiError extends Error {
   static unauthorized(mensaje = "Acceso no autorizado") {
     return new ApiError(mensaje, 401);
   }
-
-  // Podés agregar más helpers si querés
 }

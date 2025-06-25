@@ -5,6 +5,8 @@ import {
   findUserById,
   createUser,
 } from "../models/users.model.js";
+import { ApiError } from "../utils/ApiError.js";
+import { findRolById } from "../models/roles.model.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || "secreto123";
 const JWT_EXPIRES_IN = "8h";
@@ -38,6 +40,18 @@ export async function loginUser(email, password) {
 
 // Crear nuevo usuario
 export async function registrarUsuario({ nombre, email, password, rol_id }) {
+  const existente = await findUserByEmail(email);
+  if (existente)
+    throw ApiError.validation([
+      { campo: "email", mensaje: "El email ya está registrado" },
+    ]);
+
+  const rol = await findRolById(rol_id);
+  if (!rol)
+    throw ApiError.validation([
+      { campo: "rol_id", mensaje: "El rol seleccionado no existe" },
+    ]);
+
   const hashed = await bcrypt.hash(password, 10);
   const id = await createUser({ nombre, email, password: hashed, rol_id });
   return findUserById(id);
