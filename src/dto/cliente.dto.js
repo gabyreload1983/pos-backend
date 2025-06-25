@@ -34,5 +34,5 @@ export const clienteSchema = z.object({
     ])
     .optional(),
   cuit: z.string().optional().nullable(),
-  activo: z.boolean().optional(),
+  activo: z.number().optional(),
 });

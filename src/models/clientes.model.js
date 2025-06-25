@@ -59,6 +59,17 @@ export async function crearCliente(data) {
     ]);
   }
 
+  const [existeEmail] = await pool.query(
+    "SELECT id FROM clientes WHERE email = ?",
+    [email]
+  );
+
+  if (existeEmail.length > 0) {
+    throw ApiError.validation([
+      { campo: "email", mensaje: "Ya existe un cliente con ese email" },
+    ]);
+  }
+
   // Insertar cliente
   const [result] = await pool.query(
     `
@@ -88,7 +99,7 @@ export async function crearCliente(data) {
 }
 
 export async function actualizarCliente(id, data) {
-  const { provincia_id, ciudad_id } = data;
+  const { provincia_id, ciudad_id, email } = data;
 
   const [provincia] = await pool.query(
     "SELECT id FROM provincias WHERE id = ?",
@@ -108,6 +119,22 @@ export async function actualizarCliente(id, data) {
     throw ApiError.validation([
       { campo: "ciudad_id", mensaje: "Ciudad inexistente" },
     ]);
+  }
+
+  if (email) {
+    const [emailEnUso] = await pool.query(
+      "SELECT id FROM clientes WHERE email = ? AND id != ?",
+      [email, id]
+    );
+
+    if (emailEnUso.length > 0) {
+      throw ApiError.validation([
+        {
+          campo: "email",
+          mensaje: "El email ya está siendo usado por otro cliente",
+        },
+      ]);
+    }
   }
 
   const [result] = await pool.query(`UPDATE clientes SET ? WHERE id = ?`, [
