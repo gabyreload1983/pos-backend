@@ -4,6 +4,7 @@ import {
   findUserByEmail,
   findUserById,
   createUser,
+  updateUserById,
 } from "../models/users.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { findRolById } from "../models/roles.model.js";
@@ -54,5 +55,37 @@ export async function registrarUsuario({ nombre, email, password, rol_id }) {
 
   const hashed = await bcrypt.hash(password, 10);
   const id = await createUser({ nombre, email, password: hashed, rol_id });
+  return findUserById(id);
+}
+
+export async function actualizarUsuario(id, data) {
+  const usuarioExistente = await findUserById(id);
+  if (!usuarioExistente) {
+    throw ApiError.notFound("Usuario no encontrado");
+  }
+
+  if (data.email) {
+    const existente = await findUserByEmail(data.email);
+    if (existente && existente.id !== id) {
+      throw ApiError.validation([
+        { campo: "email", mensaje: "El email ya está registrado" },
+      ]);
+    }
+  }
+
+  if (data.rol_id) {
+    const rol = await findRolById(data.rol_id);
+    if (!rol) {
+      throw ApiError.validation([
+        { campo: "rol_id", mensaje: "El rol seleccionado no existe" },
+      ]);
+    }
+  }
+
+  if (data.password) {
+    data.password = await bcrypt.hash(data.password, 10);
+  }
+
+  await updateUserById(id, data);
   return findUserById(id);
 }

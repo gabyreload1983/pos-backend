@@ -32,3 +32,11 @@ export async function createUser({
   );
   return result.insertId;
 }
+
+export async function updateUserById(id, data) {
+  const [result] = await pool.query(`UPDATE usuarios SET ? WHERE id = ?`, [
+    data,
+    id,
+  ]);
+  return result;
+}

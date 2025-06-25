@@ -1,5 +1,9 @@
 import { findUserById } from "../models/users.model.js";
-import { loginUser, registrarUsuario } from "../services/users.service.js";
+import {
+  actualizarUsuario,
+  loginUser,
+  registrarUsuario,
+} from "../services/users.service.js";
 import { registrarLog } from "../utils/logger.js";
 
 export async function login(req, res, next) {
@@ -48,6 +52,19 @@ export async function getProfile(req, res, next) {
   try {
     const usuario = await findUserById(req.user.id);
     res.json(usuario);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function updateUser(req, res, next) {
+  try {
+    const id = Number(req.params.id);
+    const datos = req.validatedData;
+
+    const usuarioActualizado = await actualizarUsuario(id, datos);
+
+    res.json(usuarioActualizado);
   } catch (error) {
     next(error);
   }
