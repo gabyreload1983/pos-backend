@@ -7,7 +7,6 @@ export async function obtenerClientes() {
     FROM clientes c
     LEFT JOIN ciudades ci ON c.ciudad_id = ci.id
     LEFT JOIN provincias p ON c.provincia_id = p.id
-    WHERE c.activo = 1
     ORDER BY c.nombre
   `);
   return rows;
