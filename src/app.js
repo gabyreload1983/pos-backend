@@ -4,6 +4,7 @@ import helmet from "helmet";
 
 import userRoutes from "./routes/users.routes.js";
 import clienteRoutes from "./routes/clientes.routes.js";
+import proveedoresRoutes from "./routes/proveedores.routes.js";
 import stockRoutes from "./routes/stock.routes.js";
 import articulosRoutes from "./routes/articulos.routes.js";
 import ventasRoutes from "./routes/ventas.routes.js";
@@ -25,6 +26,7 @@ app.use(express.json());
 
 app.use("/api/users", userRoutes);
 app.use("/api/clientes", clienteRoutes);
+app.use("/api/proveedores", proveedoresRoutes);
 app.use("/api/stock", stockRoutes);
 app.use("/api/articulos", articulosRoutes);
 app.use("/api/ventas", ventasRoutes);
