@@ -32,6 +32,7 @@ export const createProveedorSchema = z.object({
       "Exento",
     ])
     .default("Consumidor Final")
+    .nullable()
     .optional(),
   activo: z.union([z.literal(1), z.literal(0)]).optional(),
 });
