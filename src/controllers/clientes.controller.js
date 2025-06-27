@@ -5,6 +5,7 @@ import {
   modificarCliente,
   borrarCliente,
 } from "../services/clientes.service.js";
+import { ApiError } from "../utils/ApiError.js";
 
 export async function getClientes(req, res, next) {
   try {
@@ -18,8 +19,8 @@ export async function getClientes(req, res, next) {
 export async function getCliente(req, res, next) {
   try {
     const cliente = await obtenerCliente(req.params.id);
-    if (!cliente)
-      return res.status(404).json({ error: "Cliente no encontrado" });
+    if (!cliente) throw new ApiError("Cliente no encontrado", 404);
+
     res.json(cliente);
   } catch (error) {
     next(error);
@@ -44,8 +45,8 @@ export async function updateCliente(req, res, next) {
       clienteData,
       req.user.id
     );
-    if (!updated)
-      return res.status(404).json({ error: "Cliente no encontrado" });
+    if (!updated) throw new ApiError("Cliente no encontrado", 404);
+
     res.json({ message: "Cliente actualizado" });
   } catch (error) {
     next(error);
@@ -55,8 +56,8 @@ export async function updateCliente(req, res, next) {
 export async function deleteCliente(req, res, next) {
   try {
     const deleted = await borrarCliente(req.params.id, req.user.id);
-    if (!deleted)
-      return res.status(404).json({ error: "Cliente no encontrado" });
+    if (!deleted) throw new ApiError("Cliente no encontrado", 404);
+
     res.json({ message: "Cliente eliminado" });
   } catch (error) {
     next(error);
