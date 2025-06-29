@@ -16,6 +16,9 @@ import resumenRoutes from "./routes/resumen.routes.js";
 import estadisticasRoutes from "./routes/estadisticas.routes.js";
 import provinciasRoutes from "./routes/provincias.routes.js";
 import ciudadesRoutes from "./routes/ciudades.routes.js";
+import marcasRoutes from "./routes/marcas.routes.js";
+import categoriasRoutes from "./routes/categorias.routes.js";
+
 import { errorHandler } from "./middlewares/errorHandler.js";
 
 const app = express();
@@ -39,6 +42,8 @@ app.use("/api/estadisticas", estadisticasRoutes);
 
 app.use("/api/provincias", provinciasRoutes);
 app.use("/api/ciudades", ciudadesRoutes);
+app.use("/api/marcas", marcasRoutes);
+app.use("/api/categorias", categoriasRoutes);
 
 app.use(errorHandler);
 
