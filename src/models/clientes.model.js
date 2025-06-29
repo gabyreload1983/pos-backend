@@ -1,12 +1,11 @@
 import { pool } from "../config/db.js";
-import { ApiError } from "../utils/ApiError.js";
 
 export async function obtenerClientes() {
   const [rows] = await pool.query(`
     SELECT c.*, ci.nombre AS ciudad, p.nombre AS provincia
     FROM clientes c
     LEFT JOIN ciudades ci ON c.ciudad_id = ci.id
-    LEFT JOIN provincias p ON c.provincia_id = p.id
+    LEFT JOIN provincias p ON p.id = c.provincia_id
     ORDER BY c.nombre
   `);
   return rows;
@@ -21,59 +20,6 @@ export async function obtenerClientePorId(id) {
 }
 
 export async function crearCliente(data) {
-  const {
-    nombre,
-    apellido,
-    razon_social,
-    tipo_documento,
-    numero_documento,
-    email,
-    telefono,
-    direccion,
-    ciudad_id,
-    provincia_id,
-    condicion_iva,
-    cuit,
-  } = data;
-
-  // Validar que provincia exista si viene
-  if (provincia_id !== null && provincia_id !== undefined) {
-    const [provincia] = await pool.query(
-      "SELECT id FROM provincias WHERE id = ?",
-      [provincia_id]
-    );
-    if (provincia.length === 0) {
-      throw ApiError.validation([
-        { campo: "provincia_id", mensaje: "Provincia inexistente" },
-      ]);
-    }
-  }
-
-  // Validar que ciudad exista si viene
-  if (ciudad_id !== null && ciudad_id !== undefined) {
-    const [ciudad] = await pool.query("SELECT id FROM ciudades WHERE id = ?", [
-      ciudad_id,
-    ]);
-    if (ciudad.length === 0) {
-      throw ApiError.validation([
-        { campo: "ciudad_id", mensaje: "Ciudad inexistente" },
-      ]);
-    }
-  }
-
-  // Validar email único si se envía
-  if (email) {
-    const [existe] = await pool.query(
-      "SELECT id FROM clientes WHERE email = ?",
-      [email]
-    );
-    if (existe.length > 0) {
-      throw ApiError.validation([
-        { campo: "email", mensaje: "Ya existe un cliente con ese email" },
-      ]);
-    }
-  }
-
   const [result] = await pool.query(
     `INSERT INTO clientes (
       nombre, apellido, razon_social, tipo_documento, numero_documento,
@@ -81,65 +27,24 @@ export async function crearCliente(data) {
       condicion_iva, cuit
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
-      nombre,
-      apellido,
-      razon_social,
-      tipo_documento,
-      numero_documento,
-      email,
-      telefono,
-      direccion,
-      ciudad_id,
-      provincia_id,
-      condicion_iva,
-      cuit,
+      data.nombre,
+      data.apellido,
+      data.razon_social,
+      data.tipo_documento,
+      data.numero_documento,
+      data.email,
+      data.telefono,
+      data.direccion,
+      data.ciudad_id,
+      data.provincia_id,
+      data.condicion_iva,
+      data.cuit,
     ]
   );
-
   return result.insertId;
 }
 
 export async function actualizarCliente(id, data) {
-  const { provincia_id, ciudad_id, email } = data;
-
-  if (provincia_id !== null && provincia_id !== undefined) {
-    const [provincia] = await pool.query(
-      "SELECT id FROM provincias WHERE id = ?",
-      [provincia_id]
-    );
-    if (provincia.length === 0) {
-      throw ApiError.validation([
-        { campo: "provincia_id", mensaje: "Provincia inexistente" },
-      ]);
-    }
-  }
-
-  if (ciudad_id !== null && ciudad_id !== undefined) {
-    const [ciudad] = await pool.query("SELECT id FROM ciudades WHERE id = ?", [
-      ciudad_id,
-    ]);
-    if (ciudad.length === 0) {
-      throw ApiError.validation([
-        { campo: "ciudad_id", mensaje: "Ciudad inexistente" },
-      ]);
-    }
-  }
-
-  if (email) {
-    const [duplicado] = await pool.query(
-      "SELECT id FROM clientes WHERE email = ? AND id != ?",
-      [email, id]
-    );
-    if (duplicado.length > 0) {
-      throw ApiError.validation([
-        {
-          campo: "email",
-          mensaje: "El email ya está siendo usado por otro cliente",
-        },
-      ]);
-    }
-  }
-
   const [result] = await pool.query(`UPDATE clientes SET ? WHERE id = ?`, [
     data,
     id,
@@ -153,4 +58,19 @@ export async function eliminarCliente(id) {
     [id]
   );
   return result.affectedRows;
+}
+
+export async function emailClienteExiste(email) {
+  const [rows] = await pool.query("SELECT id FROM clientes WHERE email = ?", [
+    email,
+  ]);
+  return rows.length > 0;
+}
+
+export async function emailClienteDuplicado(email, idActual) {
+  const [rows] = await pool.query(
+    "SELECT id FROM clientes WHERE email = ? AND id != ?",
+    [email, idActual]
+  );
+  return rows.length > 0;
 }
