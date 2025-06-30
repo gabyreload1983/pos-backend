@@ -24,7 +24,7 @@ export async function crearCliente(data) {
     `INSERT INTO clientes (
       nombre, apellido, razon_social, tipo_documento, numero_documento,
       email, telefono, direccion, ciudad_id, provincia_id,
-      condicion_iva, cuit
+      condicion_iva_id, cuit
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       data.nombre,
@@ -37,7 +37,7 @@ export async function crearCliente(data) {
       data.direccion,
       data.ciudad_id,
       data.provincia_id,
-      data.condicion_iva,
+      data.condicion_iva_id,
       data.cuit,
     ]
   );

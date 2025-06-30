@@ -4,8 +4,12 @@ import { z } from "zod";
 const camposComunes = {
   razon_social: z.string().optional().nullable(),
   tipo_documento: z
-    .enum(["DNI", "CUIT", "CUIL", "Pasaporte"])
-    .default("DNI")
+    .union([
+      z.enum(["DNI", "CUIT", "CUIL", "Pasaporte"]),
+      z.literal(""),
+      z.null(),
+    ])
+    .transform((v) => (v === "" ? null : v))
     .optional(),
   numero_documento: z.string().optional().nullable(),
   email: z
@@ -28,14 +32,11 @@ const camposComunes = {
     .positive()
     .nullable()
     .optional(),
-  condicion_iva: z
-    .enum([
-      "Responsable Inscripto",
-      "Monotributo",
-      "Consumidor Final",
-      "Exento",
-    ])
-    .default("Consumidor Final")
+  condicion_iva_id: z
+    .number({ invalid_type_error: "Debe ser un número" })
+    .int()
+    .positive()
+    .nullable()
     .optional(),
   cuit: z.string().optional().nullable(),
   activo: z.union([z.literal(1), z.literal(0)]).optional(),

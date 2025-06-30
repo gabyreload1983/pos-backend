@@ -4,6 +4,7 @@ import {
   crearCliente,
   actualizarCliente,
   eliminarCliente,
+  emailClienteDuplicado,
 } from "../models/clientes.model.js";
 import { registrarLog } from "../utils/logger.js";
 import { ApiError } from "../utils/ApiError.js";
@@ -28,6 +29,13 @@ export async function nuevoCliente(data, usuario_id) {
   if (data.ciudad_id !== null && data.ciudad_id !== undefined)
     if (!(await existeEnTabla("ciudades", data.ciudad_id)))
       errores.push({ campo: "ciudad_id", mensaje: "Ciudad inexistente" });
+
+  if (data.condicion_iva_id !== null && data.condicion_iva_id !== undefined)
+    if (!(await existeEnTabla("condiciones_iva", data.condicion_iva_id)))
+      errores.push({
+        campo: "condicion_iva_id",
+        mensaje: "Condicion IVA inexistente",
+      });
 
   if (data.email && (await emailClienteExiste(data.email)))
     errores.push({
