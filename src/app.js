@@ -18,6 +18,9 @@ import provinciasRoutes from "./routes/provincias.routes.js";
 import ciudadesRoutes from "./routes/ciudades.routes.js";
 import marcasRoutes from "./routes/marcas.routes.js";
 import categoriasRoutes from "./routes/categorias.routes.js";
+import monedasRoutes from "./routes/monedas.routes.js";
+import ivaAliquotasRoutes from "./routes/ivaAliquotas.routes.js";
+import condicionesIvaRoutes from "./routes/condicionesIva.routes.js";
 
 import { errorHandler } from "./middlewares/errorHandler.js";
 
@@ -44,6 +47,9 @@ app.use("/api/provincias", provinciasRoutes);
 app.use("/api/ciudades", ciudadesRoutes);
 app.use("/api/marcas", marcasRoutes);
 app.use("/api/categorias", categoriasRoutes);
+app.use("/api/monedas", monedasRoutes);
+app.use("/api/iva-aliquotas", ivaAliquotasRoutes);
+app.use("/api/condiciones-iva", condicionesIvaRoutes);
 
 app.use(errorHandler);
 
