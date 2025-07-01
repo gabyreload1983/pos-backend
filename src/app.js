@@ -21,6 +21,7 @@ import categoriasRoutes from "./routes/categorias.routes.js";
 import monedasRoutes from "./routes/monedas.routes.js";
 import ivaAliquotasRoutes from "./routes/ivaAliquotas.routes.js";
 import condicionesIvaRoutes from "./routes/condicionesIva.routes.js";
+import tiposDocumentoRoutes from "./routes/tiposDocumento.routes.js";
 
 import { errorHandler } from "./middlewares/errorHandler.js";
 
@@ -50,6 +51,7 @@ app.use("/api/categorias", categoriasRoutes);
 app.use("/api/monedas", monedasRoutes);
 app.use("/api/iva-aliquotas", ivaAliquotasRoutes);
 app.use("/api/condiciones-iva", condicionesIvaRoutes);
+app.use("/api/tipos-documento", tiposDocumentoRoutes);
 
 app.use(errorHandler);
 
