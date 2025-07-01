@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 // IDs de referencia (ajustar según tu base)
-const CONSUMIDOR_FINAL_ID = 3;
+const CONSUMIDOR_FINAL_ID = 1;
 const TIPO_DOCUMENTO_CUIT_ID = 2;
 
 // Campos comunes para crear y actualizar cliente

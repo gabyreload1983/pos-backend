@@ -22,23 +22,21 @@ export async function obtenerClientePorId(id) {
 export async function crearCliente(data) {
   const [result] = await pool.query(
     `INSERT INTO clientes (
-      nombre, apellido, razon_social, tipo_documento, numero_documento,
-      email, telefono, direccion, ciudad_id, provincia_id,
-      condicion_iva_id, cuit
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      nombre, apellido, razon_social, tipo_documento_id, documento,
+      email, telefono, direccion, ciudad_id, provincia_id, condicion_iva_id
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       data.nombre,
       data.apellido,
       data.razon_social,
-      data.tipo_documento,
-      data.numero_documento,
+      data.tipo_documento_id,
+      data.documento,
       data.email,
       data.telefono,
       data.direccion,
       data.ciudad_id,
       data.provincia_id,
       data.condicion_iva_id,
-      data.cuit,
     ]
   );
   return result.insertId;
