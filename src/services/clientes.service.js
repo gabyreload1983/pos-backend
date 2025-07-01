@@ -5,6 +5,7 @@ import {
   actualizarCliente,
   eliminarCliente,
   emailClienteDuplicado,
+  emailClienteExiste,
 } from "../models/clientes.model.js";
 import { registrarLog } from "../utils/logger.js";
 import { ApiError } from "../utils/ApiError.js";
