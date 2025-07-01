@@ -73,6 +73,13 @@ export async function modificarCliente(id, data, usuario_id) {
     if (!(await existeEnTabla("ciudades", data.ciudad_id)))
       errores.push({ campo: "ciudad_id", mensaje: "Ciudad inexistente" });
 
+  if (data.condicion_iva_id !== null && data.condicion_iva_id !== undefined)
+    if (!(await existeEnTabla("condiciones_iva", data.condicion_iva_id)))
+      errores.push({
+        campo: "condicion_iva_id",
+        mensaje: "Condicion IVA inexistente",
+      });
+
   if (data.email && (await emailClienteDuplicado(data.email, id)))
     errores.push({
       campo: "email",
