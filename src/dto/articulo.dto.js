@@ -26,6 +26,13 @@ export const createArticuloSchema = z.object({
     .union([z.boolean(), z.string(), z.number()])
     .transform((val) => val === true || val === "1" || val === 1)
     .optional(),
+
+  slug: z.string().max(150).optional().nullable(),
+  descripcion_larga: z.string().max(65535).optional().nullable(),
+  seo_title: z.string().max(150).optional().nullable(),
+  seo_description: z.string().max(65535).optional().nullable(),
+  external_id: z.string().max(100).optional().nullable(),
+  publicado_web: z.union([z.literal(1), z.literal(0)]).optional(),
 });
 
 export const updateArticuloSchema = createArticuloSchema
