@@ -2,6 +2,7 @@ import * as model from "../models/articulos.model.js";
 import { registrarLog } from "../utils/logger.js";
 import { ApiError } from "../utils/ApiError.js";
 import { existeEnTabla } from "../utils/dbHelpers.js";
+import { calcularPrecioVenta } from "../utils/articulos.js";
 
 export async function obtenerArticulosService() {
   const articulos = await model.obtenerArticulos();
@@ -64,6 +65,9 @@ export async function crearArticuloService(data, usuario_id) {
     throw new ApiError("Error de validación", 400, errores);
   }
 
+  const precio_venta = calcularPrecioVenta(data.costo, data.renta);
+  data.precio_venta = precio_venta;
+
   const id = await model.crearArticulo(data);
 
   await registrarLog({
@@ -87,7 +91,7 @@ export async function actualizarArticuloService(id, data, usuario_id) {
 
   if (
     data.iva_aliquota_id &&
-    !(await existeEnTabla("iva_aliquota", data.iva_aliquota_id))
+    !(await existeEnTabla("iva_aliquotas", data.iva_aliquota_id))
   ) {
     errores.push({
       campo: "iva_aliquota_id",
@@ -137,7 +141,11 @@ export async function actualizarArticuloService(id, data, usuario_id) {
     throw new ApiError("Error de validación", 400, errores);
   }
 
+  const precio_venta = calcularPrecioVenta(data.costo, data.renta);
+  data.precio_venta = precio_venta;
+
   await model.actualizarArticulo(id, data);
+
   await registrarLog({
     usuario_id,
     tabla: "articulos",

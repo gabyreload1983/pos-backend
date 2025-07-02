@@ -5,7 +5,6 @@ export const createArticuloSchema = z.object({
   descripcion: z.string().max(65535).optional().nullable(),
   costo: z.number().min(0).max(99999999.99),
   renta: z.number().min(0).max(999.99),
-  precio_venta: z.number().min(0).max(99999999.99),
   iva_aliquota_id: z.number().int(),
   moneda_id: z.number().int(),
   categoria_id: z.number().int().optional().nullable(),
@@ -27,8 +26,10 @@ export const createArticuloSchema = z.object({
     .union([z.boolean(), z.string(), z.number()])
     .transform((val) => val === true || val === "1" || val === 1)
     .optional(),
-
-  activo: z.union([z.literal(1), z.literal(0)]).optional(),
 });
 
-export const updateArticuloSchema = createArticuloSchema.partial();
+export const updateArticuloSchema = createArticuloSchema
+  .extend({
+    activo: z.union([z.literal(1), z.literal(0)]).optional(),
+  })
+  .partial();
