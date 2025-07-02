@@ -13,13 +13,15 @@ export async function obtenerArticuloPorId(id) {
 export async function crearArticulo(data) {
   const [result] = await pool.query(
     `INSERT INTO articulos 
-    (nombre, descripcion, costo, iva_id, moneda_id, renta, precio_venta, categoria_id, marca_id, proveedor_id, codigo_barra, unidad_medida, controla_stock, activo)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    (nombre, descripcion, costo, iva_aliquota_id, moneda_id, renta, precio_venta, 
+     categoria_id, marca_id, proveedor_id, codigo_barra, unidad_medida, 
+     controla_stock, tiene_nro_serie, activo)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       data.nombre,
       data.descripcion || null,
       data.costo,
-      data.iva_id,
+      data.iva_aliquota_id,
       data.moneda_id,
       data.renta,
       data.precio_venta,
@@ -29,6 +31,7 @@ export async function crearArticulo(data) {
       data.codigo_barra || null,
       data.unidad_medida || null,
       data.controla_stock ?? 1,
+      data.tiene_nro_serie ?? 0,
       data.activo ?? 1,
     ]
   );
@@ -38,15 +41,16 @@ export async function crearArticulo(data) {
 export async function actualizarArticulo(id, data) {
   const [result] = await pool.query(
     `UPDATE articulos SET 
-      nombre = ?, descripcion = ?, costo = ?, iva_id = ?, moneda_id = ?, renta = ?, precio_venta = ?, 
-      categoria_id = ?, marca_id = ?, proveedor_id = ?, codigo_barra = ?, unidad_medida = ?, 
-      controla_stock = ?, activo = ?
+      nombre = ?, descripcion = ?, costo = ?, iva_aliquota_id = ?, moneda_id = ?, 
+      renta = ?, precio_venta = ?, categoria_id = ?, marca_id = ?, proveedor_id = ?, 
+      codigo_barra = ?, unidad_medida = ?, controla_stock = ?, tiene_nro_serie = ?, 
+      activo = ?
     WHERE id = ?`,
     [
       data.nombre,
       data.descripcion || null,
       data.costo,
-      data.iva_id,
+      data.iva_aliquota_id,
       data.moneda_id,
       data.renta,
       data.precio_venta,
@@ -56,6 +60,7 @@ export async function actualizarArticulo(id, data) {
       data.codigo_barra || null,
       data.unidad_medida || null,
       data.controla_stock ?? 1,
+      data.tiene_nro_serie ?? 0,
       data.activo ?? 1,
       id,
     ]

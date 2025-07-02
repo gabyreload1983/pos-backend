@@ -6,7 +6,7 @@ export const createArticuloSchema = z.object({
   costo: z.number().min(0).max(99999999.99),
   renta: z.number().min(0).max(999.99),
   precio_venta: z.number().min(0).max(99999999.99),
-  iva_id: z.number().int(),
+  iva_aliquota_id: z.number().int(),
   moneda_id: z.number().int(),
   categoria_id: z.number().int().optional().nullable(),
   marca_id: z.number().int().optional().nullable(),
@@ -14,6 +14,7 @@ export const createArticuloSchema = z.object({
   codigo_barra: z.string().max(50).optional().nullable(),
   unidad_medida: z.string().max(20).optional().nullable(),
   controla_stock: z.boolean().optional(),
+  tiene_nro_serie: z.boolean().optional(),
   activo: z.boolean().optional(),
 });
 

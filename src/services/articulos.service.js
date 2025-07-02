@@ -50,6 +50,13 @@ export async function crearArticuloService(data, usuario_id) {
     });
   }
 
+  if (data.tiene_nro_serie && data.controla_stock === false) {
+    errores.push({
+      campo: "tiene_nro_serie",
+      mensaje: "Solo puede tener número de serie si controla stock",
+    });
+  }
+
   if (errores.length > 0) {
     throw new ApiError("Error de validación", 400, errores);
   }
@@ -106,6 +113,13 @@ export async function actualizarArticuloService(id, data, usuario_id) {
     errores.push({
       campo: "proveedor_id",
       mensaje: "El proveedor indicado no existe",
+    });
+  }
+
+  if (data.tiene_nro_serie && data.controla_stock === false) {
+    errores.push({
+      campo: "tiene_nro_serie",
+      mensaje: "Solo puede tener número de serie si controla stock",
     });
   }
 
