@@ -89,3 +89,38 @@ export async function eliminarArticulo(id) {
   );
   return result.affectedRows;
 }
+
+export async function obtenerArticulosPublicados() {
+  const [rows] = await pool.query(
+    `SELECT 
+      a.id, a.nombre, a.slug, a.descripcion_larga, a.precio_venta, 
+      a.seo_title, a.seo_description, a.external_id, a.moneda_id,
+      m.simbolo AS moneda_simbolo,
+      ia.url_imagen
+    FROM articulos a
+    LEFT JOIN monedas m ON a.moneda_id = m.id
+    LEFT JOIN (
+      SELECT articulo_id, MIN(url_imagen) AS url_imagen
+      FROM articulo_imagenes
+      WHERE activo = 1
+      GROUP BY articulo_id
+    ) ia ON ia.articulo_id = a.id
+    WHERE a.publicado_web = 1 AND a.activo = 1`
+  );
+  return rows;
+}
+
+export async function obtenerArticuloPorSlug(slug) {
+  const [rows] = await pool.query(
+    `SELECT 
+      a.id, a.nombre, a.slug, a.descripcion_larga, a.precio_venta, 
+      a.seo_title, a.seo_description, a.external_id, a.moneda_id,
+      m.simbolo AS moneda_simbolo
+    FROM articulos a
+    LEFT JOIN monedas m ON a.moneda_id = m.id
+    WHERE a.slug = ? AND a.publicado_web = 1 AND a.activo = 1
+    LIMIT 1`,
+    [slug]
+  );
+  return rows[0];
+}

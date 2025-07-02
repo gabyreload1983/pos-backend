@@ -169,3 +169,11 @@ export async function eliminarArticuloService(id, usuario_id) {
     datos_anteriores: anterior,
   });
 }
+
+export async function obtenerArticulosPublicadosService() {
+  return await model.obtenerArticulosPublicados();
+}
+
+export async function obtenerArticuloPorSlugService(slug) {
+  return await model.obtenerArticuloPorSlug(slug);
+}
