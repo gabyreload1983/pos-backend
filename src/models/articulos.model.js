@@ -32,7 +32,7 @@ export async function crearArticulo(data) {
       data.unidad_medida || null,
       data.controla_stock ?? 1,
       data.tiene_nro_serie ?? 0,
-      data.activo ?? 1,
+      data.activo || 1,
     ]
   );
   return result.insertId;

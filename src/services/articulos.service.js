@@ -15,8 +15,11 @@ export async function obtenerArticuloService(id) {
 export async function crearArticuloService(data, usuario_id) {
   const errores = [];
 
-  if (!(await existeEnTabla("iva", data.iva_id))) {
-    errores.push({ campo: "iva_id", mensaje: "El IVA indicado no existe" });
+  if (!(await existeEnTabla("iva_aliquotas", data.iva_aliquota_id))) {
+    errores.push({
+      campo: "iva_aliquota_id",
+      mensaje: "El iva_aliquota_id indicado no existe",
+    });
   }
 
   if (!(await existeEnTabla("monedas", data.moneda_id))) {
@@ -62,6 +65,7 @@ export async function crearArticuloService(data, usuario_id) {
   }
 
   const id = await model.crearArticulo(data);
+
   await registrarLog({
     usuario_id,
     tabla: "articulos",
@@ -81,8 +85,14 @@ export async function actualizarArticuloService(id, data, usuario_id) {
 
   const errores = [];
 
-  if (data.iva_id && !(await existeEnTabla("iva", data.iva_id))) {
-    errores.push({ campo: "iva_id", mensaje: "El IVA indicado no existe" });
+  if (
+    data.iva_aliquota_id &&
+    !(await existeEnTabla("iva_aliquota", data.iva_aliquota_id))
+  ) {
+    errores.push({
+      campo: "iva_aliquota_id",
+      mensaje: "El IVA indicado no existe",
+    });
   }
 
   if (data.moneda_id && !(await existeEnTabla("monedas", data.moneda_id))) {
