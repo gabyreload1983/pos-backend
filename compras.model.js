@@ -1,3 +1,4 @@
+
 import { pool } from "../config/db.js";
 
 export async function crearCompra(connection, data) {
@@ -15,7 +16,7 @@ export async function crearCompra(connection, data) {
       data.punto_venta || null,
       data.numero_comprobante || null,
       data.total,
-      data.observaciones || null,
+      data.observaciones || null
     ]
   );
   return result.insertId;
@@ -34,17 +35,13 @@ export async function insertarDetalleCompra(connection, compra_id, items) {
         item.cantidad,
         item.costo_unitario,
         item.moneda_id,
-        item.cotizacion_dolar || null,
+        item.cotizacion_dolar || null
       ]
     );
   }
 }
 
-export async function insertarDetalleCompraSeries(
-  connection,
-  detalle_compra_id,
-  series
-) {
+export async function insertarDetalleCompraSeries(connection, detalle_compra_id, series) {
   const values = series.map((serie) => [detalle_compra_id, serie]);
   await connection.query(
     "INSERT INTO detalle_compra_series (detalle_compra_id, nro_serie) VALUES ?",

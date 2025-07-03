@@ -124,3 +124,11 @@ export async function obtenerArticuloPorSlug(slug) {
   );
   return rows[0];
 }
+
+export async function tieneNroSerie(articulo_id) {
+  const [result] = await pool.query(
+    "SELECT tiene_nro_serie FROM articulos WHERE id = ?",
+    [articulo_id]
+  );
+  return result[0]?.tiene_nro_serie === 1;
+}

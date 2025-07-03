@@ -7,7 +7,7 @@ import {
 
 export async function createCompra(req, res, next) {
   try {
-    const compra_id = await registrarCompra(req.body, req.user.id);
+    const compra_id = await registrarCompra(req.validatedData, req.user.id);
     res.status(201).json({ compra_id });
   } catch (error) {
     next(error);
