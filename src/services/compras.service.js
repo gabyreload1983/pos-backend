@@ -77,48 +77,50 @@ export async function registrarCompra(data, usuario_id) {
 
     // 3. Actualizar stock y registrar movimientos
 
-    for (const item of data.items) {
-      await actualizarStock(
-        connection,
-        item.articulo_id,
-        data.sucursal_id,
-        item.cantidad
-      );
-      await registrarMovimientoStock(connection, {
-        articulo_id: item.articulo_id,
-        sucursal_id: data.sucursal_id,
-        cantidad: item.cantidad,
-        compra_id,
-      });
+    if (data.mueve_stock) {
+      for (const item of data.items) {
+        await actualizarStock(
+          connection,
+          item.articulo_id,
+          data.sucursal_id,
+          item.cantidad
+        );
+        await registrarMovimientoStock(connection, {
+          articulo_id: item.articulo_id,
+          sucursal_id: data.sucursal_id,
+          cantidad: item.cantidad,
+          compra_id,
+        });
 
-      const requiereSerie = await tieneNroSerie(item.articulo_id);
-      if (requiereSerie) {
-        const series = item.series ?? [];
-        if (series.length !== item.cantidad) {
-          throw ApiError.validation([
-            {
-              campo: `items[${i}].series`,
-              mensaje: `Cantidad de series (${series.length}) no coincide con la cantidad comprada (${item.cantidad}) para el artículo ID ${item.articulo_id}`,
-            },
-          ]);
-        }
+        const requiereSerie = await tieneNroSerie(item.articulo_id);
+        if (requiereSerie) {
+          const series = item.series ?? [];
+          if (series.length !== item.cantidad) {
+            throw ApiError.validation([
+              {
+                campo: `items[${i}].series`,
+                mensaje: `Cantidad de series (${series.length}) no coincide con la cantidad comprada (${item.cantidad}) para el artículo ID ${item.articulo_id}`,
+              },
+            ]);
+          }
 
-        // Obtener el ID del detalle_compra
-        const [[detalle]] = await connection.query(
-          `SELECT id FROM detalle_compra 
+          // Obtener el ID del detalle_compra
+          const [[detalle]] = await connection.query(
+            `SELECT id FROM detalle_compra 
        WHERE compra_id = ? AND articulo_id = ? 
        ORDER BY id DESC LIMIT 1`,
-          [compra_id, item.articulo_id]
-        );
-
-        if (!detalle?.id) {
-          throw new ApiError(
-            `No se pudo obtener el detalle de compra para artículo ID ${item.articulo_id}`,
-            500
+            [compra_id, item.articulo_id]
           );
-        }
 
-        await insertarDetalleCompraSeries(connection, detalle.id, series);
+          if (!detalle?.id) {
+            throw new ApiError(
+              `No se pudo obtener el detalle de compra para artículo ID ${item.articulo_id}`,
+              500
+            );
+          }
+
+          await insertarDetalleCompraSeries(connection, detalle.id, series);
+        }
       }
     }
 

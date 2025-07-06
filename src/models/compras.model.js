@@ -5,8 +5,8 @@ export async function crearCompra(connection, data) {
     `INSERT INTO compras (
       usuario_id, proveedor_id, sucursal_id,
       tipo_comprobante_id, punto_venta, numero_comprobante,
-      total, observaciones
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      total, observaciones, mueve_stock, estado_remito
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       data.usuario_id,
       data.proveedor_id,
@@ -16,6 +16,8 @@ export async function crearCompra(connection, data) {
       data.numero_comprobante || null,
       data.total,
       data.observaciones || null,
+      data.mueve_stock ? 1 : 0,
+      data.mueve_stock ? "completo" : "sin remitir",
     ]
   );
   return result.insertId;
