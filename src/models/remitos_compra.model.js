@@ -8,7 +8,7 @@ export async function crearRemitoCompra(connection, data) {
       proveedor_id, usuario_id, sucursal_id, fecha, observaciones, total
     ) VALUES (?, ?, ?, NOW(), ?, ?)`,
     [
-      data.proveedor_id,
+      data.proveedor_id || null,
       data.usuario_id,
       data.sucursal_id,
       data.observaciones || null,

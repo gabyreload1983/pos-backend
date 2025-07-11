@@ -22,134 +22,216 @@ export async function registrarRemitoCompra(data, usuario_id) {
   try {
     await connection.beginTransaction();
 
-    // 1. Obtener compra
-    const compra = await obtenerCompraPorId(data.compra_id);
-    if (!compra) {
-      throw ApiError.notFound("Compra no encontrada");
-    }
-    if (compra.mueve_stock === 1) {
-      throw ApiError.badRequest("La compra ya movió stock");
-    }
-
-    // 2. Validar remanente
-    const pendientes = await obtenerPendientesCompra(data.compra_id);
-    const errores = [];
-
-    const pendientesMap = new Map();
-    pendientes.forEach((p) => pendientesMap.set(p.detalle_compra_id, p));
-
-    const itemsConArticulo = [];
-
-    for (const item of data.items) {
-      const detalle = pendientesMap.get(item.detalle_compra_id);
-      if (!detalle) {
-        errores.push({
-          campo: `detalle_compra_id ${item.detalle_compra_id}`,
-          mensaje: "No pertenece a esta compra",
-        });
-        continue;
+    if (data.compra_id) {
+      const compra = await obtenerCompraPorId(data.compra_id);
+      if (!compra) {
+        throw ApiError.notFound("Compra no encontrada");
+      }
+      if (compra.mueve_stock === 1) {
+        throw ApiError.badRequest("La compra ya movió stock");
       }
 
-      const restante = detalle.cantidad - detalle.cantidad_remitada;
-      if (item.cantidad > restante) {
-        errores.push({
-          campo: `items`,
-          mensaje: `No puede remitir más de lo pendiente (${restante}) para artículo ID ${detalle.articulo_id}`,
-        });
-      }
-
-      itemsConArticulo.push({
-        detalle_compra_id: item.detalle_compra_id,
-        articulo_id: detalle.articulo_id,
-        cantidad: item.cantidad,
-        series: item.series ?? [],
-      });
-    }
-
-    if (errores.length > 0) {
-      throw ApiError.validation(errores);
-    }
-
-    // 3. Crear remito
-    const remito_id = await crearRemitoCompra(connection, {
-      ...data,
-      usuario_id,
-      proveedor_id: compra.proveedor_id,
-    });
-
-    await vincularRemitoConCompra(connection, data.compra_id, remito_id);
-
-    let total = 0;
-
-    // 4. Insertar detalle + stock + series
-    for (const item of itemsConArticulo) {
-      const detalleCompra = pendientesMap.get(item.detalle_compra_id);
-      const inserted = await insertarDetalleRemitoCompra(
-        connection,
-        remito_id,
-        [item]
+      const pendientes = await obtenerPendientesCompra(
+        data.compra_id,
+        connection
       );
-      const detalle_remito_id = inserted[0].detalle_remito_id;
+      const errores = [];
+      const pendientesMap = new Map();
+      pendientes.forEach((p) => pendientesMap.set(p.detalle_compra_id, p));
+      const itemsConArticulo = [];
 
-      await actualizarStock(
-        connection,
-        detalleCompra.articulo_id,
-        data.sucursal_id,
-        item.cantidad
-      );
-      await registrarMovimientoStock(connection, {
-        articulo_id: detalleCompra.articulo_id,
-        sucursal_id: data.sucursal_id,
-        cantidad: item.cantidad,
-        origen: "compra",
-        origen_id: data.compra_id,
-      });
-
-      const requiereSerie = await tieneNroSerie(detalleCompra.articulo_id);
-      if (requiereSerie) {
-        const series = item.series ?? [];
-        if (series.length !== item.cantidad) {
-          throw ApiError.validation([
-            {
-              campo: `series`,
-              mensaje: `Cantidad de series (${series.length}) no coincide con la cantidad remitida (${item.cantidad})`,
-            },
-          ]);
+      for (const item of data.items) {
+        const detalle = pendientesMap.get(item.detalle_compra_id);
+        if (!detalle) {
+          errores.push({
+            campo: `detalle_compra_id ${item.detalle_compra_id}`,
+            mensaje: "No pertenece a esta compra",
+          });
+          continue;
         }
 
-        await insertarRemitoSeries(connection, detalle_remito_id, series);
+        const restante = detalle.cantidad - detalle.cantidad_remitada;
+        if (item.cantidad > restante) {
+          errores.push({
+            campo: "items",
+            mensaje: `No puede remitir más de lo pendiente (${restante}) para artículo ID ${detalle.articulo_id}`,
+          });
+        }
+
+        itemsConArticulo.push({
+          detalle_compra_id: item.detalle_compra_id,
+          articulo_id: detalle.articulo_id,
+          cantidad: item.cantidad,
+          series: item.series ?? [],
+        });
       }
 
-      total += item.cantidad * detalleCompra.costo_unitario;
+      if (errores.length > 0) {
+        throw ApiError.validation(errores);
+      }
+
+      const remito_id = await crearRemitoCompra(connection, {
+        ...data,
+        usuario_id,
+        proveedor_id: compra.proveedor_id,
+      });
+
+      await vincularRemitoConCompra(connection, data.compra_id, remito_id);
+
+      for (const item of itemsConArticulo) {
+        const inserted = await insertarDetalleRemitoCompra(
+          connection,
+          remito_id,
+          [item]
+        );
+        const detalle_remito_id = inserted[0].detalle_remito_id;
+
+        await actualizarStock(
+          connection,
+          item.articulo_id,
+          data.sucursal_id,
+          item.cantidad
+        );
+        await registrarMovimientoStock(connection, {
+          articulo_id: item.articulo_id,
+          sucursal_id: data.sucursal_id,
+          cantidad: item.cantidad,
+          origen: "compra",
+          origen_id: data.compra_id,
+        });
+
+        const requiereSerie = await tieneNroSerie(item.articulo_id);
+        if (requiereSerie) {
+          if (item.series.length !== item.cantidad) {
+            throw ApiError.validation([
+              {
+                campo: "series",
+                mensaje: `Cantidad de series (${item.series.length}) no coincide con la cantidad remitida (${item.cantidad})`,
+              },
+            ]);
+          }
+          await insertarRemitoSeries(
+            connection,
+            detalle_remito_id,
+            item.series
+          );
+        }
+      }
+
+      const nuevosPendientes = await obtenerPendientesCompra(
+        data.compra_id,
+        connection
+      );
+      const completos = nuevosPendientes.every(
+        (d) => Number(d.cantidad) === Number(d.cantidad_remitada)
+      );
+
+      await actualizarEstadoRemitoCompra(
+        connection,
+        data.compra_id,
+        completos ? "completo" : "parcial"
+      );
+
+      await registrarLog({
+        usuario_id,
+        tabla: "remitos_compra",
+        accion: "INSERT",
+        descripcion: `Remito registrado ID ${remito_id} desde compra ID ${data.compra_id}`,
+        registro_id: remito_id,
+        datos_nuevos: data,
+      });
+
+      await connection.commit();
+      connection.release();
+      return remito_id;
     }
 
-    // 5. Estado remito compra
-    const nuevosPendientes = await obtenerPendientesCompra(
-      data.compra_id,
-      connection
-    );
-    const completos = nuevosPendientes.every(
-      (d) => Number(d.cantidad) === Number(d.cantidad_remitada)
-    );
-    await actualizarEstadoRemitoCompra(
-      connection,
-      data.compra_id,
-      completos ? "completo" : "parcial"
-    );
+    if (!data.compra_id) {
+      const errores = [];
 
-    // 6. Auditar
-    await registrarLog({
-      usuario_id,
-      tabla: "remitos_compra",
-      accion: "INSERT",
-      descripcion: `Remito registrado ID ${remito_id} desde compra ID ${data.compra_id}`,
-      registro_id: remito_id,
-      datos_nuevos: data,
-    });
+      for (const item of data.items) {
+        if (!item.articulo_id) {
+          errores.push({
+            campo: "articulo_id",
+            mensaje: "Falta el ID del artículo",
+          });
+          continue;
+        }
 
-    await connection.commit();
-    connection.release();
-    return remito_id;
+        const requiereSerie = await tieneNroSerie(item.articulo_id);
+        if (
+          requiereSerie &&
+          (!item.series || item.series.length !== item.cantidad)
+        ) {
+          errores.push({
+            campo: "series",
+            mensaje: `Debe informar ${item.cantidad} series para el artículo ID ${item.articulo_id}`,
+          });
+        }
+      }
+
+      if (errores.length > 0) {
+        throw ApiError.validation(errores);
+      }
+
+      const remito_id = await crearRemitoCompra(connection, {
+        ...data,
+        usuario_id,
+        proveedor_id: null,
+      });
+
+      for (const item of data.items) {
+        const inserted = await insertarDetalleRemitoCompra(
+          connection,
+          remito_id,
+          [
+            {
+              articulo_id: item.articulo_id,
+              cantidad: item.cantidad,
+              detalle_compra_id: null,
+            },
+          ]
+        );
+
+        const detalle_remito_id = inserted[0].detalle_remito_id;
+
+        await actualizarStock(
+          connection,
+          item.articulo_id,
+          data.sucursal_id,
+          item.cantidad
+        );
+
+        await registrarMovimientoStock(connection, {
+          articulo_id: item.articulo_id,
+          sucursal_id: data.sucursal_id,
+          cantidad: item.cantidad,
+          origen: "remito",
+          origen_id: remito_id,
+        });
+
+        if (item.series?.length) {
+          await insertarRemitoSeries(
+            connection,
+            detalle_remito_id,
+            item.series
+          );
+        }
+      }
+
+      await registrarLog({
+        usuario_id,
+        tabla: "remitos_compra",
+        accion: "INSERT",
+        descripcion: `Remito libre registrado ID ${remito_id}`,
+        registro_id: remito_id,
+        datos_nuevos: data,
+      });
+
+      await connection.commit();
+      connection.release();
+      return remito_id;
+    }
   } catch (error) {
     await connection.rollback();
     connection.release();
