@@ -20,3 +20,21 @@ export const createCompraSchema = z.object({
   items: z.array(itemCompraSchema).min(1),
   mueve_stock: z.union([z.literal(1), z.literal(0)]).default(1),
 });
+
+export const itemCompraDesdeRemitosSchema = z.object({
+  articulo_id: z.number().int().positive(),
+  costo_unitario: z.number().nonnegative(),
+  cotizacion_dolar: z.number().nonnegative().nullable().optional(),
+});
+
+export const createCompraDesdeRemitosSchema = z.object({
+  proveedor_id: z.number().int().positive(),
+  sucursal_id: z.number().int().positive(),
+  tipo_comprobante_id: z.number().int().positive(),
+  punto_venta: z.number().int().nullable().optional(),
+  numero_comprobante: z.number().int().nullable().optional(),
+  total: z.number().nonnegative(),
+  observaciones: z.string().optional(),
+  remitos_id: z.array(z.number().int().positive()).min(1),
+  items: z.array(itemCompraDesdeRemitosSchema).min(1),
+});

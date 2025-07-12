@@ -145,6 +145,120 @@ export async function registrarCompra(data, usuario_id) {
   }
 }
 
+export async function registrarCompraDesdeRemitos(data, usuario_id) {
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    // 1. Validar remitos
+    const [remitos] = await connection.query(
+      `SELECT id FROM remitos_compra WHERE id IN (?)`,
+      [data.remitos_id]
+    );
+    if (remitos.length !== data.remitos_id.length) {
+      throw ApiError.badRequest("Uno o más remitos no existen");
+    }
+
+    // 2. Crear compra
+    const [result] = await connection.query(
+      `INSERT INTO compras (
+        proveedor_id, sucursal_id, tipo_comprobante_id,
+        punto_venta, numero_comprobante, total, observaciones,
+        estado_remito, mueve_stock, usuario_id
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, 'completo', 0, ?)`,
+      [
+        data.proveedor_id,
+        data.sucursal_id,
+        data.tipo_comprobante_id,
+        data.punto_venta,
+        data.numero_comprobante,
+        data.total,
+        data.observaciones ?? null,
+        usuario_id,
+      ]
+    );
+    const compra_id = result.insertId;
+
+    // 3. Asociar remitos
+    for (const remito_id of data.remitos_id) {
+      await connection.query(
+        `INSERT INTO remito_factura_compra (remito_id, compra_id) VALUES (?, ?)`,
+        [remito_id, compra_id]
+      );
+    }
+
+    // 4. Obtener cantidades remitidas por artículo
+    const [cantidades] = await connection.query(
+      `SELECT articulo_id, SUM(cantidad) AS cantidad
+       FROM detalle_remito_compra
+       WHERE remito_id IN (?)
+       GROUP BY articulo_id`,
+      [data.remitos_id]
+    );
+    const cantidadesMap = new Map();
+    cantidades.forEach((row) =>
+      cantidadesMap.set(row.articulo_id, Number(row.cantidad))
+    );
+
+    // 5. Insertar ítems en detalle_compra
+    for (const item of data.items) {
+      const cantidad = cantidadesMap.get(item.articulo_id);
+      if (!cantidad) {
+        throw ApiError.badRequest(
+          `No se encontró cantidad remitida para artículo ID ${item.articulo_id}`
+        );
+      }
+
+      // Obtener moneda_id del artículo
+      const [rows] = await connection.query(
+        `SELECT moneda_id FROM articulos WHERE id = ?`,
+        [item.articulo_id]
+      );
+      const moneda_id = rows[0]?.moneda_id;
+      if (!moneda_id) {
+        throw ApiError.badRequest(
+          `Artículo ID ${item.articulo_id} no tiene moneda asignada`
+        );
+      }
+
+      await connection.query(
+        `INSERT INTO detalle_compra (
+          compra_id, articulo_id, cantidad, costo_unitario,
+          moneda_id, cotizacion_dolar
+        ) VALUES (?, ?, ?, ?, ?, ?)`,
+        [
+          compra_id,
+          item.articulo_id,
+          cantidad,
+          item.costo_unitario,
+          moneda_id,
+          item.cotizacion_dolar ?? null,
+        ]
+      );
+    }
+
+    // 6. Auditar
+    await registrarLog({
+      usuario_id,
+      tabla: "compras",
+      accion: "INSERT",
+      descripcion: `Compra registrada desde remitos: ${data.remitos_id.join(
+        ", "
+      )}`,
+      registro_id: compra_id,
+      datos_nuevos: data,
+    });
+
+    await connection.commit();
+    connection.release();
+    return compra_id;
+  } catch (error) {
+    await connection.rollback();
+    connection.release();
+    throw error;
+  }
+}
+
 export async function listarCompras() {
   return await obtenerCompras();
 }
