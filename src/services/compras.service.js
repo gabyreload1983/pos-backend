@@ -13,7 +13,10 @@ import {
   registrarMovimientoStock,
 } from "../models/stock.model.js";
 import { ApiError } from "../utils/ApiError.js";
-import { existeEnTabla } from "../utils/dbHelpers.js";
+import {
+  existeComprobanteProveedor,
+  existeEnTabla,
+} from "../utils/dbHelpers.js";
 import { registrarLog } from "../utils/logger.js";
 
 export async function registrarCompra(data, usuario_id) {
@@ -64,6 +67,18 @@ export async function registrarCompra(data, usuario_id) {
 
   const connection = await pool.getConnection();
   try {
+    if (
+      await existeComprobanteProveedor(
+        data.proveedor_id,
+        data.punto_venta,
+        data.numero_comprobante
+      )
+    ) {
+      throw ApiError.conflict(
+        `Ya existe una compra con ese punto de venta y número de comprobante para este proveedor`
+      );
+    }
+
     await connection.beginTransaction();
 
     // 1. Crear cabecera
@@ -157,6 +172,18 @@ export async function registrarCompraDesdeRemitos(data, usuario_id) {
     );
     if (remitos.length !== data.remitos_id.length) {
       throw ApiError.badRequest("Uno o más remitos no existen");
+    }
+
+    if (
+      await existeComprobanteProveedor(
+        data.proveedor_id,
+        data.punto_venta,
+        data.numero_comprobante
+      )
+    ) {
+      throw ApiError.conflict(
+        `Ya existe una compra con ese punto de venta y número de comprobante para este proveedor`
+      );
     }
 
     // 2. Crear compra
