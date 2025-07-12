@@ -16,6 +16,7 @@ import {
 import { obtenerCompraPorId } from "../models/compras.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { registrarLog } from "../utils/logger.js";
+import { existenSeriesDuplicadas } from "../utils/dbHelpers.js";
 
 export async function registrarRemitoCompra(data, usuario_id) {
   const connection = await pool.getConnection();
@@ -109,6 +110,15 @@ export async function registrarRemitoCompra(data, usuario_id) {
                 mensaje: `Cantidad de series (${item.series.length}) no coincide con la cantidad remitida (${item.cantidad})`,
               },
             ]);
+          }
+
+          const seriesDuplicadas = await existenSeriesDuplicadas(series);
+          if (seriesDuplicadas) {
+            throw ApiError.conflict(
+              `Los siguientes números de serie ya existen: ${seriesDuplicadas.join(
+                ", "
+              )}`
+            );
           }
           await insertarRemitoSeries(
             connection,

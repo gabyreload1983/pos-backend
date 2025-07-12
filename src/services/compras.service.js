@@ -16,6 +16,7 @@ import { ApiError } from "../utils/ApiError.js";
 import {
   existeComprobanteProveedor,
   existeEnTabla,
+  existenSeriesDuplicadas,
 } from "../utils/dbHelpers.js";
 import { registrarLog } from "../utils/logger.js";
 
@@ -131,6 +132,15 @@ export async function registrarCompra(data, usuario_id) {
             throw new ApiError(
               `No se pudo obtener el detalle de compra para artículo ID ${item.articulo_id}`,
               500
+            );
+          }
+
+          const seriesDuplicadas = await existenSeriesDuplicadas(series);
+          if (seriesDuplicadas) {
+            throw ApiError.conflict(
+              `Los siguientes números de serie ya existen: ${seriesDuplicadas.join(
+                ", "
+              )}`
             );
           }
 
