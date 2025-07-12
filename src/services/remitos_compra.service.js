@@ -16,7 +16,10 @@ import {
 import { obtenerCompraPorId } from "../models/compras.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { registrarLog } from "../utils/logger.js";
-import { existenSeriesDuplicadas } from "../utils/dbHelpers.js";
+import {
+  existenSeriesDuplicadas,
+  insertarNumerosSerie,
+} from "../utils/dbHelpers.js";
 
 export async function registrarRemitoCompra(data, usuario_id) {
   const connection = await pool.getConnection();
@@ -112,7 +115,7 @@ export async function registrarRemitoCompra(data, usuario_id) {
             ]);
           }
 
-          const seriesDuplicadas = await existenSeriesDuplicadas(series);
+          const seriesDuplicadas = await existenSeriesDuplicadas(item.series);
           if (seriesDuplicadas) {
             throw ApiError.conflict(
               `Los siguientes números de serie ya existen: ${seriesDuplicadas.join(
@@ -124,6 +127,13 @@ export async function registrarRemitoCompra(data, usuario_id) {
             connection,
             detalle_remito_id,
             item.series
+          );
+
+          await insertarNumerosSerie(
+            connection,
+            item.articulo_id,
+            item.series,
+            data.sucursal_id
           );
         }
       }
@@ -225,6 +235,12 @@ export async function registrarRemitoCompra(data, usuario_id) {
             connection,
             detalle_remito_id,
             item.series
+          );
+          await insertarNumerosSerie(
+            connection,
+            item.articulo_id,
+            item.series,
+            data.sucursal_id
           );
         }
       }

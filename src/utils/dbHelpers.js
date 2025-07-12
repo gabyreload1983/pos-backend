@@ -35,3 +35,17 @@ export async function existenSeriesDuplicadas(series = []) {
 
   return rows.length > 0 ? rows.map((r) => r.nro_serie) : false;
 }
+
+export async function insertarNumerosSerie(
+  connection,
+  articulo_id,
+  series,
+  sucursal_id
+) {
+  if (!series?.length) return;
+  await connection.query(
+    `INSERT INTO numeros_serie (articulo_id, nro_serie, sucursal_id, estado)
+     VALUES ?`,
+    [series.map((nro) => [articulo_id, nro, sucursal_id, "disponible"])]
+  );
+}

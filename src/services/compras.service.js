@@ -17,6 +17,7 @@ import {
   existeComprobanteProveedor,
   existeEnTabla,
   existenSeriesDuplicadas,
+  insertarNumerosSerie,
 } from "../utils/dbHelpers.js";
 import { registrarLog } from "../utils/logger.js";
 
@@ -145,6 +146,12 @@ export async function registrarCompra(data, usuario_id) {
           }
 
           await insertarDetalleCompraSeries(connection, detalle.id, series);
+          await insertarNumerosSerie(
+            connection,
+            item.articulo_id,
+            item.series,
+            data.sucursal_id
+          );
         }
       }
     }
