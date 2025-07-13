@@ -1,5 +1,10 @@
 import { pool } from "../config/db.js";
-import { tieneNroSerie } from "../models/articulos.model.js";
+import {
+  actualizarCostoArticulo,
+  obtenerCostoYPrecioVenta,
+  recalcularPrecioVenta,
+  tieneNroSerie,
+} from "../models/articulos.model.js";
 import {
   crearCompra,
   insertarDetalleCompra,
@@ -115,7 +120,7 @@ export async function registrarCompra(data, usuario_id) {
           if (series.length !== item.cantidad) {
             throw ApiError.validation([
               {
-                campo: `items[${i}].series`,
+                campo: `series del artículo ${item.articulo_id}`,
                 mensaje: `Cantidad de series (${series.length}) no coincide con la cantidad comprada (${item.cantidad}) para el artículo ID ${item.articulo_id}`,
               },
             ]);
@@ -152,6 +157,34 @@ export async function registrarCompra(data, usuario_id) {
             item.series,
             data.sucursal_id
           );
+        }
+
+        if (data.actualizar_costo) {
+          const { costo_anterior, precio_venta_anterior } =
+            await obtenerCostoYPrecioVenta(item.articulo_id);
+
+          await actualizarCostoArticulo(
+            connection,
+            item.articulo_id,
+            item.costo_unitario
+          );
+          await recalcularPrecioVenta(connection, item.articulo_id);
+
+          await registrarLog({
+            usuario_id,
+            tabla: "articulos",
+            accion: "UPDATE",
+            descripcion: `Actualización de costo y precio_venta desde compra ID ${compra_id}`,
+            registro_id: item.articulo_id,
+            datos_anteriores: {
+              costo: costo_anterior,
+              precio_venta: precio_venta_anterior,
+            },
+            datos_nuevos: {
+              costo: item.costo_unitario,
+              precio_venta: nuevo_precio_venta,
+            },
+          });
         }
       }
     }
@@ -279,6 +312,34 @@ export async function registrarCompraDesdeRemitos(data, usuario_id) {
           item.cotizacion_dolar ?? null,
         ]
       );
+
+      if (data.actualizar_costo) {
+        const { costo_anterior, precio_venta_anterior } =
+          await obtenerCostoYPrecioVenta(item.articulo_id);
+
+        await actualizarCostoArticulo(
+          connection,
+          item.articulo_id,
+          item.costo_unitario
+        );
+        await recalcularPrecioVenta(connection, item.articulo_id);
+
+        await registrarLog({
+          usuario_id,
+          tabla: "articulos",
+          accion: "UPDATE",
+          descripcion: `Actualización de costo y precio_venta desde compra ID ${compra_id}`,
+          registro_id: item.articulo_id,
+          datos_anteriores: {
+            costo: costo_anterior,
+            precio_venta: precio_venta_anterior,
+          },
+          datos_nuevos: {
+            costo: item.costo_unitario,
+            precio_venta: nuevo_precio_venta,
+          },
+        });
+      }
     }
 
     // 6. Auditar

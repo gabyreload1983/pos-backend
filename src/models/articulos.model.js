@@ -132,3 +132,44 @@ export async function tieneNroSerie(articulo_id) {
   );
   return result[0]?.tiene_nro_serie === 1;
 }
+
+export async function obtenerCostoYPrecioVenta(articulo_id) {
+  const [[row]] = await pool.query(
+    `SELECT costo, precio_venta FROM articulos WHERE id = ?`,
+    [articulo_id]
+  );
+  return {
+    costo_anterior: row?.costo ?? null,
+    precio_venta_anterior: row?.precio_venta ?? null,
+  };
+}
+
+export async function actualizarCostoArticulo(
+  connection,
+  articulo_id,
+  nuevo_costo
+) {
+  await connection.query(
+    `UPDATE articulos SET costo = ?, updated_at = NOW() WHERE id = ?`,
+    [nuevo_costo, articulo_id]
+  );
+}
+
+export async function recalcularPrecioVenta(connection, articulo_id) {
+  const [[articulo]] = await connection.query(
+    `SELECT costo, renta FROM articulos WHERE id = ?`,
+    [articulo_id]
+  );
+
+  if (!articulo) return;
+
+  const precio_venta = +(
+    articulo.costo +
+    (articulo.costo * articulo.renta) / 100
+  ).toFixed(2);
+
+  await connection.query(
+    `UPDATE articulos SET precio_venta = ?, updated_at = NOW() WHERE id = ?`,
+    [precio_venta, articulo_id]
+  );
+}

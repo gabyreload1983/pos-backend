@@ -19,6 +19,7 @@ export const createCompraSchema = z.object({
   observaciones: z.string().optional(),
   items: z.array(itemCompraSchema).min(1),
   mueve_stock: z.union([z.literal(1), z.literal(0)]).default(1),
+  actualizar_costo: z.boolean().optional().default(true),
 });
 
 export const itemCompraDesdeRemitosSchema = z.object({
