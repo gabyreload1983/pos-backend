@@ -1,5 +1,6 @@
 import {
-  crearVentaConDetalle,
+  crearDetalleVenta,
+  crearVenta,
   obtenerVentaPorId,
   obtenerVentas,
 } from "../models/ventas.model.js";
@@ -15,23 +16,41 @@ import { registrarMovimientoCuentaCorriente } from "../models/cuentas_corrientes
 import { existeEnTabla } from "../utils/dbHelpers.js";
 import { registrarLog } from "../utils/logger.js";
 import { ApiError } from "../utils/ApiError.js";
+import { obtenerCotizacionDolarActiva } from "../models/cotizaciones_dolar.model.js";
+import { obtenerMonedaPorId } from "../models/monedas.model.js";
+import { pool } from "../config/db.js";
 
 export async function registrarVenta(data, usuario_id, sucursal_id) {
   const caja = await obtenerCajaAbierta(sucursal_id);
   if (!caja) throw new ApiError("No hay caja abierta en esta sucursal", 400);
 
-  if (data.cliente_id) {
-    const clienteExiste = await existeEnTabla("clientes", data.cliente_id);
-    if (!clienteExiste) throw new ApiError("Cliente no válido", 400);
+  if (!data.cliente_id)
+    throw new ApiError("Debe especificarse el cliente", 400);
+
+  const clienteExiste = await existeEnTabla("clientes", data.cliente_id);
+  if (!clienteExiste) throw new ApiError("Cliente no válido", 400);
+
+  const cotizacionActiva = await obtenerCotizacionDolarActiva();
+  if (!cotizacionActiva)
+    throw new ApiError("No hay cotización de dólar activa", 400);
+
+  if (
+    data.cotizacion_usada_id &&
+    cotizacionActiva.id !== data.cotizacion_usada_id
+  ) {
+    throw new ApiError(
+      "La cotización del dólar cambió mientras completabas la venta. Actualizá los precios y volvé a intentar.",
+      409
+    );
   }
 
+  let total = 0;
   const itemsProcesados = [];
 
   for (const item of data.items) {
     const articulo = await obtenerArticulo(item.articulo_id);
-    if (!articulo) {
+    if (!articulo)
       throw new ApiError(`Artículo ID ${item.articulo_id} no válido`, 400);
-    }
 
     if (articulo.controla_stock) {
       const stock = await obtenerStockArticuloSucursal(
@@ -55,6 +74,13 @@ export async function registrarVenta(data, usuario_id, sucursal_id) {
       );
     }
 
+    const moneda = await obtenerMonedaPorId(item.moneda_id);
+    if (!moneda) throw new ApiError("Moneda no válida", 400);
+
+    const cotizacion = moneda.codigo_iso === "USD" ? cotizacionActiva.valor : 1;
+    const subtotalARS = item.precio_unitario * item.cantidad * cotizacion;
+    total += subtotalARS;
+
     itemsProcesados.push({
       articulo_id: item.articulo_id,
       cantidad: item.cantidad,
@@ -63,72 +89,79 @@ export async function registrarVenta(data, usuario_id, sucursal_id) {
       porcentaje_ajuste: item.porcentaje_ajuste,
       precio_unitario: item.precio_unitario,
       moneda_id: item.moneda_id,
-      cotizacion_dolar: item.cotizacion_dolar || null,
+      cotizacion_dolar:
+        moneda.codigo_iso === "USD" ? cotizacionActiva.valor : null,
     });
   }
 
-  const venta_id = await crearVentaConDetalle({
-    cliente_id: data.cliente_id || null,
-    usuario_id,
-    caja_id: caja.id,
-    tipo_pago: data.tipo_pago,
-    observaciones: data.observaciones || null,
-    items: itemsProcesados,
-  });
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
 
-  for (const item of itemsProcesados) {
-    const { articulo_id, cantidad } = item;
+    const venta_id = await crearVenta(connection, {
+      cliente_id: data.cliente_id,
+      usuario_id,
+      caja_id: caja.id,
+      tipo_pago: data.tipo_pago,
+      observaciones: data.observaciones || null,
+      total,
+    });
 
-    const articulo = await obtenerArticulo(articulo_id);
-    if (articulo.controla_stock) {
-      await descontarStock(articulo_id, sucursal_id, cantidad);
-      await registrarMovimientoStock({
-        articulo_id,
-        sucursal_id,
-        cantidad: -cantidad,
-        tipo: "salida",
-        origen: "venta",
-        origen_id: venta_id,
-        observaciones: `Venta ID ${venta_id}`,
+    await crearDetalleVenta(connection, venta_id, itemsProcesados);
+
+    for (const item of itemsProcesados) {
+      const articulo = await obtenerArticulo(item.articulo_id);
+      if (articulo.controla_stock) {
+        await descontarStock(item.articulo_id, sucursal_id, item.cantidad);
+        await registrarMovimientoStock({
+          articulo_id: item.articulo_id,
+          sucursal_id,
+          cantidad: -item.cantidad,
+          tipo: "salida",
+          origen: "venta",
+          origen_id: venta_id,
+          observaciones: `Venta ID ${venta_id}`,
+        });
+      }
+    }
+
+    if (data.tipo_pago !== "cuenta corriente") {
+      await registrarMovimientoCaja({
+        caja_id: caja.id,
+        tipo_movimiento: "ingreso",
+        motivo: "venta",
+        descripcion: `Venta ID ${venta_id}`,
+        monto: total,
       });
     }
-  }
 
-  const total = itemsProcesados.reduce(
-    (acc, i) => acc + i.precio_unitario * i.cantidad,
-    0
-  );
+    if (data.tipo_pago === "cuenta corriente") {
+      await registrarMovimientoCuentaCorriente({
+        cliente_id: data.cliente_id,
+        venta_id,
+        tipo_movimiento: "venta",
+        descripcion: `Venta ID ${venta_id}`,
+        monto: total,
+      });
+    }
 
-  if (data.tipo_pago !== "cuenta corriente") {
-    await registrarMovimientoCaja({
-      caja_id: caja.id,
-      tipo_movimiento: "ingreso",
-      motivo: "venta",
-      descripcion: `Venta ID ${venta_id}`,
-      monto: total,
+    await registrarLog({
+      usuario_id,
+      tabla: "ventas",
+      accion: "INSERT",
+      descripcion: `Nueva venta ID ${venta_id}`,
+      registro_id: venta_id,
+      datos_nuevos: data,
     });
+
+    await connection.commit();
+    connection.release();
+    return venta_id;
+  } catch (error) {
+    await connection.rollback();
+    connection.release();
+    throw error;
   }
-
-  if (data.tipo_pago === "cuenta corriente") {
-    await registrarMovimientoCuentaCorriente({
-      cliente_id: data.cliente_id,
-      venta_id,
-      tipo_movimiento: "venta",
-      descripcion: `Venta ID ${venta_id}`,
-      monto: total,
-    });
-  }
-
-  await registrarLog({
-    usuario_id,
-    tabla: "ventas",
-    accion: "INSERT",
-    descripcion: `Nueva venta ID ${venta_id}`,
-    registro_id: venta_id,
-    datos_nuevos: data,
-  });
-
-  return venta_id;
 }
 
 export async function listarVentas() {

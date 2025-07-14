@@ -1,65 +1,49 @@
 import { pool } from "../config/db.js";
 
-export async function crearVentaConDetalle(data) {
-  const connection = await pool.getConnection();
-  try {
-    await connection.beginTransaction();
+export async function crearVenta(connection, ventaData) {
+  const [ventaResult] = await connection.query(
+    `INSERT INTO ventas (cliente_id, usuario_id, caja_id, total, tipo_pago, observaciones)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    [
+      ventaData.cliente_id,
+      ventaData.usuario_id,
+      ventaData.caja_id,
+      ventaData.total,
+      ventaData.tipo_pago,
+      ventaData.observaciones,
+    ]
+  );
 
-    const total = data.items.reduce(
-      (acc, i) => acc + i.cantidad * i.precio_unitario,
-      0
-    );
+  return ventaResult.insertId;
+}
 
-    const [ventaResult] = await connection.query(
-      `INSERT INTO ventas (cliente_id, usuario_id, caja_id, total, tipo_pago, observaciones)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [
-        data.cliente_id || null,
-        data.usuario_id,
-        data.caja_id || null,
-        total,
-        data.tipo_pago,
-        data.observaciones || null,
-      ]
-    );
+export async function crearDetalleVenta(connection, venta_id, items) {
+  const detalles = items.map((i) => [
+    venta_id,
+    i.articulo_id,
+    i.cantidad,
+    i.precio_base,
+    i.tipo_ajuste || "ninguno",
+    i.porcentaje_ajuste || 0.0,
+    i.precio_unitario,
+    i.moneda_id,
+    i.cotizacion_dolar,
+  ]);
 
-    const venta_id = ventaResult.insertId;
-
-    const detalles = data.items.map((i) => [
-      venta_id,
-      i.articulo_id,
-      i.cantidad,
-      i.precio_base,
-      i.tipo_ajuste || "ninguno",
-      i.porcentaje_ajuste || 0.0,
-      i.precio_unitario,
-      i.moneda_id,
-      i.cotizacion_dolar || null,
-    ]);
-
-    await connection.query(
-      `INSERT INTO detalle_venta (
-         venta_id,
-         articulo_id,
-         cantidad,
-         precio_base,
-         tipo_ajuste,
-         porcentaje_ajuste,
-         precio_unitario,
-         moneda_id,
-         cotizacion_dolar
-       ) VALUES ?`,
-      [detalles]
-    );
-
-    await connection.commit();
-    connection.release();
-    return venta_id;
-  } catch (error) {
-    await connection.rollback();
-    connection.release();
-    throw error;
-  }
+  await connection.query(
+    `INSERT INTO detalle_venta (
+       venta_id,
+       articulo_id,
+       cantidad,
+       precio_base,
+       tipo_ajuste,
+       porcentaje_ajuste,
+       precio_unitario,
+       moneda_id,
+       cotizacion_dolar
+     ) VALUES ?`,
+    [detalles]
+  );
 }
 
 export async function obtenerVentaPorId(id) {

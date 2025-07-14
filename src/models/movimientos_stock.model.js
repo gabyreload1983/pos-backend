@@ -1,3 +1,5 @@
+import { pool } from "../config/db.js";
+
 export async function registrarMovimientoStock({
   articulo_id,
   sucursal_id,

@@ -1,3 +1,5 @@
+import { pool } from "../config/db.js";
+
 export async function registrarMovimientoCaja({
   caja_id,
   tipo_movimiento,
