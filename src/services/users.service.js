@@ -8,6 +8,7 @@ import {
 } from "../models/users.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { findRolById } from "../models/roles.model.js";
+import { obtenerSucursalesDelUsuario } from "../models/usuarios_sucursales.model.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || "secreto123";
 const JWT_EXPIRES_IN = "8h";
@@ -24,6 +25,8 @@ export async function loginUser(email, password) {
     throw new Error("Contraseña incorrecta");
   }
 
+  const sucursales = await obtenerSucursalesDelUsuario(user.id);
+
   const token = jwt.sign({ id: user.id, rol_id: user.rol_id }, JWT_SECRET, {
     expiresIn: JWT_EXPIRES_IN,
   });
@@ -36,6 +39,7 @@ export async function loginUser(email, password) {
       email: user.email,
       rol_id: user.rol_id,
     },
+    sucursales,
   };
 }
 

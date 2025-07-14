@@ -26,9 +26,9 @@ export async function getVenta(req, res, next) {
 export async function createVenta(req, res, next) {
   try {
     const venta_id = await registrarVenta(
-      req.body,
+      req.validatedData,
       req.user.id,
-      req.user.sucursal_id
+      req.sucursal_id
     );
     res.status(201).json({ venta_id });
   } catch (error) {
