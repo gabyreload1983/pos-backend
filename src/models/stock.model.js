@@ -23,10 +23,10 @@ export async function ajustarStock({ articulo_id, sucursal_id, cantidad }) {
 
 export async function obtenerStockArticuloSucursal(articulo_id, sucursal_id) {
   const [rows] = await pool.query(
-    `SELECT * FROM stock WHERE articulo_id = ? AND sucursal_id = ?`,
+    `SELECT cantidad FROM stock WHERE articulo_id = ? AND sucursal_id = ?`,
     [articulo_id, sucursal_id]
   );
-  return rows[0];
+  return rows[0] || null;
 }
 
 export async function crearRegistroStock({
@@ -93,4 +93,11 @@ export async function obtenerComprasPorProveedor(proveedor_id) {
     [proveedor_id]
   );
   return rows;
+}
+
+export async function descontarStock(articulo_id, sucursal_id, cantidad) {
+  await pool.query(
+    `UPDATE stock SET cantidad = cantidad - ? WHERE articulo_id = ? AND sucursal_id = ?`,
+    [cantidad, articulo_id, sucursal_id]
+  );
 }

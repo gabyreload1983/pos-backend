@@ -5,6 +5,14 @@ export async function obtenerArticulos() {
   return rows;
 }
 
+export async function obtenerArticulo(articulo_id) {
+  const [rows] = await pool.query(
+    `SELECT id, nombre, costo, controla_stock FROM articulos WHERE id = ?`,
+    [articulo_id]
+  );
+  return rows[0] || null;
+}
+
 export async function obtenerArticuloPorId(id) {
   const [rows] = await pool.query("SELECT * FROM articulos WHERE id = ?", [id]);
   return rows[0];
