@@ -24,7 +24,7 @@ import categoriasRoutes from "./routes/categorias.routes.js";
 import monedasRoutes from "./routes/monedas.routes.js";
 import ivaAliquotasRoutes from "./routes/ivaAliquotas.routes.js";
 import condicionesIvaRoutes from "./routes/condicionesIva.routes.js";
-import tiposDocumentoRoutes from "./routes/tiposDocumento.routes.js";
+import tiposDocumentoRoutes from "./routes/tipos_documento.routes.js";
 import ecommerceRoutes from "./routes/ecommerce.routes.js";
 
 import { errorHandler } from "./middlewares/errorHandler.js";

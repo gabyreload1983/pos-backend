@@ -1,4 +1,4 @@
-import { listarTiposDocumento } from "../services/tiposDocumento.service.js";
+import { listarTiposDocumento } from "../services/tipos_documento.service.js";
 
 export async function getTiposDocumento(req, res, next) {
   try {
