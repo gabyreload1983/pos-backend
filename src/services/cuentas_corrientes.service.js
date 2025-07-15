@@ -1,5 +1,5 @@
 import { pool } from "../config/db.js";
-import { ACCIONES_LOG } from "../constants/index.js";
+import { ACCIONES_LOG, TIPOS_MOVIMIENTO_CTACTE } from "../constants/index.js";
 import {
   obtenerMovimientosPorCliente,
   obtenerSaldoParcial,
@@ -22,10 +22,13 @@ export async function nuevoMovimiento(data, usuario_id) {
     );
 
     const saldoAnterior = rows[0]?.saldo || 0;
-    const nuevoSaldo =
-      data.tipo === "debe"
-        ? saldoAnterior + data.monto
-        : saldoAnterior - data.monto;
+
+    const nuevoSaldo = [
+      TIPOS_MOVIMIENTO_CTACTE.VENTA,
+      TIPOS_MOVIMIENTO_CTACTE.AJUSTE,
+    ].includes(data.tipo_movimiento_id)
+      ? saldoAnterior + data.monto
+      : saldoAnterior - data.monto;
 
     const id = await registrarMovimientoConSaldo(connection, {
       ...data,
@@ -36,7 +39,7 @@ export async function nuevoMovimiento(data, usuario_id) {
       usuario_id,
       tabla: "cuentas_corrientes",
       accion_id: ACCIONES_LOG.INSERT,
-      descripcion: `Movimiento CC ${data.tipo} por ${data.monto}`,
+      descripcion: `Movimiento CC por ${data.monto}`,
       registro_id: id,
       datos_nuevos: data,
     });

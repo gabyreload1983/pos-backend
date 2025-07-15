@@ -2,12 +2,12 @@ import { pool } from "../config/db.js";
 
 export async function registrarMovimientoConSaldo(connection, data) {
   const [result] = await connection.query(
-    "INSERT INTO cuentas_corrientes (cliente_id, fecha, tipo, concepto, monto, saldo) VALUES (?, ?, ?, ?, ?, ?)",
+    "INSERT INTO cuentas_corrientes (cliente_id, fecha, tipo_movimiento_id, descripcion, monto, saldo) VALUES (?, ?, ?, ?, ?, ?)",
     [
       data.cliente_id,
       data.fecha,
-      data.tipo,
-      data.concepto,
+      data.tipo_movimiento_id,
+      data.descripcion,
       data.monto,
       data.saldo,
     ]
