@@ -1,4 +1,4 @@
-import { listarIvaAliquotas } from "../services/ivaAliquotas.service.js";
+import { listarIvaAliquotas } from "../services/iva_aliquotas.service.js";
 
 export async function getIvaAliquotas(req, res, next) {
   try {

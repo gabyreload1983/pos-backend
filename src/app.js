@@ -22,7 +22,7 @@ import ciudadesRoutes from "./routes/ciudades.routes.js";
 import marcasRoutes from "./routes/marcas.routes.js";
 import categoriasRoutes from "./routes/categorias.routes.js";
 import monedasRoutes from "./routes/monedas.routes.js";
-import ivaAliquotasRoutes from "./routes/ivaAliquotas.routes.js";
+import ivaAliquotasRoutes from "./routes/iva_aliquotas.routes.js";
 import condicionesIvaRoutes from "./routes/condiciones_iva.routes.js";
 import tiposDocumentoRoutes from "./routes/tipos_documento.routes.js";
 import ecommerceRoutes from "./routes/ecommerce.routes.js";
