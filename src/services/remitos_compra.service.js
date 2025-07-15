@@ -20,7 +20,7 @@ import {
   existenSeriesDuplicadas,
   insertarNumerosSerie,
 } from "../utils/dbHelpers.js";
-import { ACCIONES_LOG } from "../constants/acciones_log.js";
+import { ACCIONES_LOG } from "../constants/index.js";
 
 export async function registrarRemitoCompra(data, usuario_id) {
   const connection = await pool.getConnection();

@@ -3,7 +3,7 @@ import { crearPago } from "../models/pagos.model.js";
 import { registrarMovimientoConSaldo } from "../models/cuentas_corrientes.model.js";
 import { registrarLog } from "../utils/logger.js";
 import { obtenerCajaAbierta } from "../models/cajas.model.js";
-import { ACCIONES_LOG } from "../constants/acciones_log.js";
+import { ACCIONES_LOG } from "../constants/index.js";
 
 export async function registrarPago(data, usuario_id, sucursal_id) {
   const connection = await pool.getConnection();

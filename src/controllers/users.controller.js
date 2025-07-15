@@ -5,7 +5,7 @@ import {
   registrarUsuario,
 } from "../services/users.service.js";
 import { registrarLog } from "../utils/logger.js";
-import { ACCIONES_LOG } from "../constants/acciones_log.js";
+import { ACCIONES_LOG } from "../constants/index.js";
 
 export async function login(req, res, next) {
   try {

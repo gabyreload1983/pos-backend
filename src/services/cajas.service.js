@@ -1,5 +1,5 @@
 import { pool } from "../config/db.js";
-import { ACCIONES_LOG } from "../constants/acciones_log.js";
+import { ACCIONES_LOG } from "../constants/index.js";
 import {
   abrirCaja,
   cerrarCaja,
