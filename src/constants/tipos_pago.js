@@ -1,0 +1,7 @@
+export const TIPOS_PAGO = {
+  EFECTIVO: 1,
+  TARJETA: 2,
+  TRANSFERENCIA: 3,
+  CUENTA_CORRIENTE: 4,
+  OTRO: 5,
+};

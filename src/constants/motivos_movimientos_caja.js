@@ -1,0 +1,8 @@
+export const MOTIVOS_MOVIMIENTOS_CAJA = {
+  VENTA: 1,
+  PAGO_PROVEEDOR: 2,
+  RETIRO: 3,
+  APORTE: 4,
+  AJUSTE: 5,
+  OTRO: 6,
+};

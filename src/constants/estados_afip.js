@@ -1,0 +1,5 @@
+export const ESTADOS_AFIP = {
+  PENDIENTE: 1,
+  AUTORIZADO: 2,
+  RECHAZADO: 3,
+};

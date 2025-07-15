@@ -1,0 +1,7 @@
+export const FORMAS_PAGO = {
+  EFECTIVO: 1,
+  TRANSFERENCIA: 2,
+  TARJETA: 3,
+  CHEQUE: 4,
+  OTRO: 5,
+};
