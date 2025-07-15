@@ -20,7 +20,7 @@ import {
   existenSeriesDuplicadas,
   insertarNumerosSerie,
 } from "../utils/dbHelpers.js";
-import { ACCIONES_LOG } from "../constants/index.js";
+import { ACCIONES_LOG, ESTADOS_REMITO } from "../constants/index.js";
 
 export async function registrarRemitoCompra(data, usuario_id) {
   const connection = await pool.getConnection();
@@ -150,7 +150,7 @@ export async function registrarRemitoCompra(data, usuario_id) {
       await actualizarEstadoRemitoCompra(
         connection,
         data.compra_id,
-        completos ? "completo" : "parcial"
+        completos ? ESTADOS_REMITO.COMPLETO : ESTADOS_REMITO.PARCIAL
       );
 
       await registrarLog({

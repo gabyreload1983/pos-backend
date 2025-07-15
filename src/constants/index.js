@@ -6,3 +6,4 @@ export * from "./motivos_movimientos_caja.js";
 export * from "./origenes_movimientos_stock.js";
 export * from "./tipos_movimiento_ctacte.js";
 export * from "./acciones_log.js";
+export * from "./estados_remito.js";

@@ -86,10 +86,10 @@ export async function obtenerPendientesCompra(compra_id, connection = pool) {
 export async function actualizarEstadoRemitoCompra(
   connection,
   compra_id,
-  estado
+  estado_remito_id
 ) {
-  await connection.query(`UPDATE compras SET estado_remito = ? WHERE id = ?`, [
-    estado,
-    compra_id,
-  ]);
+  await connection.query(
+    `UPDATE compras SET estado_remito_id = ? WHERE id = ?`,
+    [estado_remito_id, compra_id]
+  );
 }
