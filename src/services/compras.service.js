@@ -1,5 +1,8 @@
 import { pool } from "../config/db.js";
-import { ACCIONES_LOG } from "../constants/index.js";
+import {
+  ACCIONES_LOG,
+  ORIGENES_MOVIMIENTOS_STOCK,
+} from "../constants/index.js";
 import {
   actualizarCostoArticulo,
   obtenerCostoYPrecioVenta,
@@ -112,7 +115,10 @@ export async function registrarCompra(data, usuario_id) {
           articulo_id: item.articulo_id,
           sucursal_id: data.sucursal_id,
           cantidad: item.cantidad,
-          compra_id,
+          tipo: "entrada",
+          origen_id: ORIGENES_MOVIMIENTOS_STOCK.COMPRA,
+          origen_id_externo: compra_id,
+          observaciones: `Compra ID ${compra_id}`,
         });
 
         const requiereSerie = await tieneNroSerie(item.articulo_id);

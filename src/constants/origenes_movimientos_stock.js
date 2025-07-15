@@ -1,6 +1,7 @@
 export const ORIGENES_MOVIMIENTOS_STOCK = {
   COMPRA: 1,
-  VENTA: 2,
-  AJUSTE: 3,
-  OTRO: 4,
+  REMITO: 2,
+  VENTA: 3,
+  AJUSTE: 4,
+  OTRO: 5,
 };

@@ -69,15 +69,16 @@ export async function actualizarStock(
 // Registra el movimiento de entrada de stock
 export async function registrarMovimientoStock(connection, data) {
   await connection.query(
-    `INSERT INTO movimientos_stock (articulo_id, sucursal_id, cantidad, tipo, origen, origen_id)
-     VALUES (?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO movimientos_stock (articulo_id, sucursal_id, cantidad, tipo, origen_id, origen_id_externo, observaciones)
+   VALUES (?, ?, ?, ?, ?, ?, ?)`,
     [
       data.articulo_id,
       data.sucursal_id,
       data.cantidad,
-      "entrada", // <- fijo porque es una compra
-      "compra",
-      data.compra_id,
+      data.tipo,
+      data.origen_id,
+      data.origen_id_externo,
+      data.observaciones || null,
     ]
   );
 }

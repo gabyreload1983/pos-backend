@@ -20,7 +20,11 @@ import {
   existenSeriesDuplicadas,
   insertarNumerosSerie,
 } from "../utils/dbHelpers.js";
-import { ACCIONES_LOG, ESTADOS_REMITO } from "../constants/index.js";
+import {
+  ACCIONES_LOG,
+  ESTADOS_REMITO,
+  ORIGENES_MOVIMIENTOS_STOCK,
+} from "../constants/index.js";
 
 export async function registrarRemitoCompra(data, usuario_id) {
   const connection = await pool.getConnection();
@@ -101,8 +105,10 @@ export async function registrarRemitoCompra(data, usuario_id) {
           articulo_id: item.articulo_id,
           sucursal_id: data.sucursal_id,
           cantidad: item.cantidad,
-          origen: "compra",
-          origen_id: data.compra_id,
+          tipo: "entrada",
+          origen_id: ORIGENES_MOVIMIENTOS_STOCK.REMITO,
+          origen_id_externo: remito_id,
+          observaciones: `Remito ID ${remito_id}`,
         });
 
         const requiereSerie = await tieneNroSerie(item.articulo_id);
@@ -227,8 +233,10 @@ export async function registrarRemitoCompra(data, usuario_id) {
           articulo_id: item.articulo_id,
           sucursal_id: data.sucursal_id,
           cantidad: item.cantidad,
-          origen: "remito",
-          origen_id: remito_id,
+          tipo: "entrada",
+          origen_id: ORIGENES_MOVIMIENTOS_STOCK.REMITO,
+          origen_id_externo: remito_id,
+          observaciones: `Remito ID ${remito_id}`,
         });
 
         if (item.series?.length) {
