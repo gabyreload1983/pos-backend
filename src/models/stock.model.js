@@ -23,7 +23,7 @@ export async function ajustarStock({ articulo_id, sucursal_id, cantidad }) {
 
 export async function obtenerStockArticuloSucursal(articulo_id, sucursal_id) {
   const [rows] = await pool.query(
-    `SELECT cantidad FROM stock WHERE articulo_id = ? AND sucursal_id = ?`,
+    `SELECT * FROM stock WHERE articulo_id = ? AND sucursal_id = ?`,
     [articulo_id, sucursal_id]
   );
   return rows[0] || null;

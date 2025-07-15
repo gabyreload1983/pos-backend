@@ -30,7 +30,10 @@ export async function actualizarStock(
       descripcion: `Stock actualizado para artículo ${articulo_id} en sucursal ${sucursal_id}`,
       registro_id: existente.id,
       datos_anteriores: existente,
-      datos_nuevos: { cantidad },
+      datos_nuevos: {
+        ...existente,
+        cantidad,
+      },
     });
   } else {
     const id = await crearRegistroStock({ articulo_id, sucursal_id, cantidad });
