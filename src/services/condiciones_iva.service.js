@@ -1,4 +1,4 @@
-import { obtenerCondicionesIva } from "../models/condicionesIva.model.js";
+import { obtenerCondicionesIva } from "../models/condiciones_iva.model.js";
 
 export async function listarCondicionesIva() {
   return await obtenerCondicionesIva();

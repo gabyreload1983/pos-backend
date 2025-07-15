@@ -1,4 +1,4 @@
-import { listarCondicionesIva } from "../services/condicionesIva.service.js";
+import { listarCondicionesIva } from "../services/condiciones_iva.service.js";
 
 export async function getCondicionesIva(req, res, next) {
   try {
