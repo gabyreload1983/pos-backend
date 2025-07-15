@@ -51,13 +51,13 @@ export async function obtenerSaldoParcial(cliente_id, hasta) {
 export async function registrarMovimientoCuentaCorriente({
   cliente_id,
   venta_id,
-  tipo_movimiento,
+  tipo_movimiento_id,
   descripcion,
   monto,
 }) {
   await pool.query(
-    `INSERT INTO cuentas_corrientes (cliente_id, venta_id, tipo_movimiento, descripcion, monto)
+    `INSERT INTO cuentas_corrientes (cliente_id, venta_id, tipo_movimiento_id, descripcion, monto)
      VALUES (?, ?, ?, ?, ?)`,
-    [cliente_id, venta_id, tipo_movimiento, descripcion, monto]
+    [cliente_id, venta_id, tipo_movimiento_id, descripcion, monto]
   );
 }

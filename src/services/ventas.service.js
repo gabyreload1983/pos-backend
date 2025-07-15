@@ -19,7 +19,13 @@ import { ApiError } from "../utils/ApiError.js";
 import { obtenerCotizacionDolarActiva } from "../models/cotizaciones_dolar.model.js";
 import { obtenerMonedaPorId } from "../models/monedas.model.js";
 import { pool } from "../config/db.js";
-import { ACCIONES_LOG } from "../constants/index.js";
+import {
+  ACCIONES_LOG,
+  TIPOS_PAGO,
+  MOTIVOS_MOVIMIENTOS_CAJA,
+  TIPOS_MOVIMIENTO_CTACTE,
+  ORIGENES_MOVIMIENTOS_STOCK,
+} from "../constants/index.js";
 
 export async function registrarVenta(data, usuario_id, sucursal_id) {
   const caja = await obtenerCajaAbierta(sucursal_id);
@@ -86,7 +92,7 @@ export async function registrarVenta(data, usuario_id, sucursal_id) {
       articulo_id: item.articulo_id,
       cantidad: item.cantidad,
       precio_base: item.precio_base,
-      tipo_ajuste: item.tipo_ajuste,
+      tipo_ajuste_id: item.tipo_ajuste_id,
       porcentaje_ajuste: item.porcentaje_ajuste,
       precio_unitario: item.precio_unitario,
       moneda_id: item.moneda_id,
@@ -103,7 +109,7 @@ export async function registrarVenta(data, usuario_id, sucursal_id) {
       cliente_id: data.cliente_id,
       usuario_id,
       caja_id: caja.id,
-      tipo_pago: data.tipo_pago,
+      tipo_pago_id: data.tipo_pago_id,
       observaciones: data.observaciones || null,
       total,
     });
@@ -119,28 +125,28 @@ export async function registrarVenta(data, usuario_id, sucursal_id) {
           sucursal_id,
           cantidad: -item.cantidad,
           tipo: "salida",
-          origen: "venta",
-          origen_id: venta_id,
+          origen_id: ORIGENES_MOVIMIENTOS_STOCK.VENTA,
+          origen_id_externo: venta_id,
           observaciones: `Venta ID ${venta_id}`,
         });
       }
     }
 
-    if (data.tipo_pago !== "cuenta corriente") {
+    if (data.tipo_pago_id !== TIPOS_PAGO.CUENTA_CORRIENTE) {
       await registrarMovimientoCaja({
         caja_id: caja.id,
         tipo_movimiento: "ingreso",
-        motivo: "venta",
+        motivo_id: MOTIVOS_MOVIMIENTOS_CAJA.VENTA,
         descripcion: `Venta ID ${venta_id}`,
         monto: total,
       });
     }
 
-    if (data.tipo_pago === "cuenta corriente") {
+    if (data.tipo_pago_id === TIPOS_PAGO.CUENTA_CORRIENTE) {
       await registrarMovimientoCuentaCorriente({
         cliente_id: data.cliente_id,
         venta_id,
-        tipo_movimiento: "venta",
+        tipo_movimiento_id: TIPOS_MOVIMIENTO_CTACTE.VENTA,
         descripcion: `Venta ID ${venta_id}`,
         monto: total,
       });

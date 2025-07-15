@@ -2,14 +2,14 @@ import { pool } from "../config/db.js";
 
 export async function crearVenta(connection, ventaData) {
   const [ventaResult] = await connection.query(
-    `INSERT INTO ventas (cliente_id, usuario_id, caja_id, total, tipo_pago, observaciones)
+    `INSERT INTO ventas (cliente_id, usuario_id, caja_id, total, tipo_pago_id, observaciones)
      VALUES (?, ?, ?, ?, ?, ?)`,
     [
       ventaData.cliente_id,
       ventaData.usuario_id,
       ventaData.caja_id,
       ventaData.total,
-      ventaData.tipo_pago,
+      ventaData.tipo_pago_id,
       ventaData.observaciones,
     ]
   );
@@ -23,7 +23,7 @@ export async function crearDetalleVenta(connection, venta_id, items) {
     i.articulo_id,
     i.cantidad,
     i.precio_base,
-    i.tipo_ajuste || "ninguno",
+    i.tipo_ajuste_id || 1,
     i.porcentaje_ajuste || 0.0,
     i.precio_unitario,
     i.moneda_id,
@@ -36,7 +36,7 @@ export async function crearDetalleVenta(connection, venta_id, items) {
        articulo_id,
        cantidad,
        precio_base,
-       tipo_ajuste,
+       tipo_ajuste_id,
        porcentaje_ajuste,
        precio_unitario,
        moneda_id,
@@ -76,16 +76,17 @@ export async function obtenerVentaPorId(id) {
 export async function obtenerVentas() {
   const [rows] = await pool.query(
     `SELECT 
-       v.id,
-       v.fecha,
-       v.total,
-       v.tipo_pago,
-       u.nombre AS usuario,
-       c.nombre AS cliente
-     FROM ventas v
-     JOIN usuarios u ON v.usuario_id = u.id
-     LEFT JOIN clientes c ON v.cliente_id = c.id
-     ORDER BY v.fecha DESC`
+      v.id,
+      v.fecha,
+      v.total,
+      tp.nombre AS tipo_pago,
+      u.nombre AS usuario,
+      c.nombre AS cliente
+      FROM ventas v
+      JOIN usuarios u ON v.usuario_id = u.id
+      JOIN tipos_pago tp ON v.tipo_pago_id = tp.id
+      LEFT JOIN clientes c ON v.cliente_id = c.id
+      ORDER BY v.fecha DESC`
   );
 
   return rows;
