@@ -5,6 +5,7 @@ import {
   registrarUsuario,
 } from "../services/users.service.js";
 import { registrarLog } from "../utils/logger.js";
+import { ACCIONES_LOG } from "../constants/acciones_log.js";
 
 export async function login(req, res, next) {
   try {
@@ -13,7 +14,7 @@ export async function login(req, res, next) {
     await registrarLog({
       usuario_id: data.usuario.id,
       tabla: "usuarios",
-      accion: "LOGIN",
+      accion_id: ACCIONES_LOG.LOGIN,
       descripcion: `El usuario ${data.usuario.email} inició sesión`,
     });
 
@@ -36,7 +37,7 @@ export async function register(req, res, next) {
     await registrarLog({
       usuario_id: req.user?.id || nuevoUsuario.id, // usa el admin si existe, o el mismo si se autoregistra
       tabla: "usuarios",
-      accion: "INSERT",
+      accion_id: ACCIONES_LOG.INSERT,
       descripcion: `Usuario creado: ${email} (por ${req.user?.id || "self"})`,
       registro_id: nuevoUsuario.id,
       datos_nuevos: nuevoUsuario,

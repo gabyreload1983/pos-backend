@@ -3,6 +3,7 @@ import { registrarLog } from "../utils/logger.js";
 import { ApiError } from "../utils/ApiError.js";
 import { existeEnTabla } from "../utils/dbHelpers.js";
 import { calcularPrecioVenta } from "../utils/articulos.js";
+import { ACCIONES_LOG } from "../constants/acciones_log.js";
 
 export async function obtenerArticulosService() {
   const articulos = await model.obtenerArticulos();
@@ -73,7 +74,7 @@ export async function crearArticuloService(data, usuario_id) {
   await registrarLog({
     usuario_id,
     tabla: "articulos",
-    accion: "INSERT",
+    accion_id: ACCIONES_LOG.INSERT,
     descripcion: `Se creó el artículo ${data.nombre}`,
     registro_id: id,
     datos_nuevos: data,
@@ -149,7 +150,7 @@ export async function actualizarArticuloService(id, data, usuario_id) {
   await registrarLog({
     usuario_id,
     tabla: "articulos",
-    accion: "UPDATE",
+    accion_id: ACCIONES_LOG.UPDATE,
     descripcion: `Se actualizó el artículo ${anterior.nombre}`,
     registro_id: id,
     datos_anteriores: anterior,
@@ -163,7 +164,7 @@ export async function eliminarArticuloService(id, usuario_id) {
   await registrarLog({
     usuario_id,
     tabla: "articulos",
-    accion: "DELETE",
+    accion_id: ACCIONES_LOG.DELETE,
     descripcion: `Se desactivó el artículo ${anterior.nombre}`,
     registro_id: id,
     datos_anteriores: anterior,

@@ -1,4 +1,5 @@
 import { pool } from "../config/db.js";
+import { ACCIONES_LOG } from "../constants/acciones_log.js";
 import {
   obtenerMovimientosPorCliente,
   obtenerSaldoParcial,
@@ -34,7 +35,7 @@ export async function nuevoMovimiento(data, usuario_id) {
     await registrarLog({
       usuario_id,
       tabla: "cuentas_corrientes",
-      accion: "INSERT",
+      accion_id: ACCIONES_LOG.INSERT,
       descripcion: `Movimiento CC ${data.tipo} por ${data.monto}`,
       registro_id: id,
       datos_nuevos: data,

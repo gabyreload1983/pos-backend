@@ -19,6 +19,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { obtenerCotizacionDolarActiva } from "../models/cotizaciones_dolar.model.js";
 import { obtenerMonedaPorId } from "../models/monedas.model.js";
 import { pool } from "../config/db.js";
+import { ACCIONES_LOG } from "../constants/acciones_log.js";
 
 export async function registrarVenta(data, usuario_id, sucursal_id) {
   const caja = await obtenerCajaAbierta(sucursal_id);
@@ -148,7 +149,7 @@ export async function registrarVenta(data, usuario_id, sucursal_id) {
     await registrarLog({
       usuario_id,
       tabla: "ventas",
-      accion: "INSERT",
+      accion_id: ACCIONES_LOG.INSERT,
       descripcion: `Nueva venta ID ${venta_id}`,
       registro_id: venta_id,
       datos_nuevos: data,

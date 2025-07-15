@@ -9,8 +9,8 @@ import {
 } from "../models/clientes.model.js";
 import { registrarLog } from "../utils/logger.js";
 import { ApiError } from "../utils/ApiError.js";
-import { pool } from "../config/db.js";
 import { existeEnTabla } from "../utils/dbHelpers.js";
+import { ACCIONES_LOG } from "../constants/acciones_log.js";
 
 export async function listarClientes() {
   return await obtenerClientes();
@@ -52,7 +52,7 @@ export async function nuevoCliente(data, usuario_id) {
   await registrarLog({
     usuario_id,
     tabla: "clientes",
-    accion: "INSERT",
+    accion_id: ACCIONES_LOG.INSERT,
     descripcion: `Alta de cliente: ${data.nombre} ${data.apellido}`,
     registro_id: id,
     datos_nuevos: data,
@@ -94,7 +94,7 @@ export async function modificarCliente(id, data, usuario_id) {
   await registrarLog({
     usuario_id,
     tabla: "clientes",
-    accion: "UPDATE",
+    accion_id: ACCIONES_LOG.UPDATE,
     descripcion: `Modificación del cliente ID ${id}`,
     registro_id: id,
     datos_anteriores: clienteAnterior,
@@ -111,7 +111,7 @@ export async function borrarCliente(id, usuario_id) {
   await registrarLog({
     usuario_id,
     tabla: "clientes",
-    accion: "DELETE",
+    accion_id: ACCIONES_LOG.DELETE,
     descripcion: `Baja lógica del cliente ID ${id}`,
     registro_id: id,
     datos_anteriores: cliente,

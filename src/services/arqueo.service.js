@@ -1,4 +1,5 @@
 import { pool } from "../config/db.js";
+import { ACCIONES_LOG } from "../constants/acciones_log.js";
 import {
   obtenerTotalSistema,
   registrarArqueo,
@@ -33,7 +34,7 @@ export async function realizarArqueo(
     await registrarLog({
       usuario_id,
       tabla: "arqueos_caja",
-      accion: "INSERT",
+      accion_id: ACCIONES_LOG.INSERT,
       descripcion: `Arqueo de caja ID ${id}`,
       registro_id: id,
       datos_nuevos: { total_sistema, total_contado, diferencia, observaciones },

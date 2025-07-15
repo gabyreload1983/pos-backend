@@ -1,4 +1,5 @@
 import { pool } from "../config/db.js";
+import { ACCIONES_LOG } from "../constants/acciones_log.js";
 import {
   actualizarCostoArticulo,
   obtenerCostoYPrecioVenta,
@@ -173,7 +174,7 @@ export async function registrarCompra(data, usuario_id) {
           await registrarLog({
             usuario_id,
             tabla: "articulos",
-            accion: "UPDATE",
+            accion_id: ACCIONES_LOG.UPDATE,
             descripcion: `Actualización de costo y precio_venta desde compra ID ${compra_id}`,
             registro_id: item.articulo_id,
             datos_anteriores: {
@@ -193,7 +194,7 @@ export async function registrarCompra(data, usuario_id) {
     await registrarLog({
       usuario_id,
       tabla: "compras",
-      accion: "INSERT",
+      accion_id: ACCIONES_LOG.INSERT,
       descripcion: `Compra registrada ID ${compra_id}`,
       registro_id: compra_id,
       datos_nuevos: data,
@@ -327,7 +328,7 @@ export async function registrarCompraDesdeRemitos(data, usuario_id) {
         await registrarLog({
           usuario_id,
           tabla: "articulos",
-          accion: "UPDATE",
+          accion_id: ACCIONES_LOG.UPDATE,
           descripcion: `Actualización de costo y precio_venta desde compra ID ${compra_id}`,
           registro_id: item.articulo_id,
           datos_anteriores: {
@@ -346,7 +347,7 @@ export async function registrarCompraDesdeRemitos(data, usuario_id) {
     await registrarLog({
       usuario_id,
       tabla: "compras",
-      accion: "INSERT",
+      accion_id: ACCIONES_LOG.INSERT,
       descripcion: `Compra registrada desde remitos: ${data.remitos_id.join(
         ", "
       )}`,

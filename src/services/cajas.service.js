@@ -1,4 +1,5 @@
 import { pool } from "../config/db.js";
+import { ACCIONES_LOG } from "../constants/acciones_log.js";
 import {
   abrirCaja,
   cerrarCaja,
@@ -25,7 +26,7 @@ export async function aperturaCaja(
     await registrarLog({
       usuario_id,
       tabla: "cajas",
-      accion: "INSERT",
+      accion_id: ACCIONES_LOG.INSERT,
       descripcion: `Apertura de caja ID ${id}`,
       registro_id: id,
       datos_nuevos: { fecha_apertura, saldo_inicial },
@@ -54,7 +55,7 @@ export async function cierreCaja({ fecha_cierre, saldo_final }, usuario_id) {
     await registrarLog({
       usuario_id,
       tabla: "cajas",
-      accion: "UPDATE",
+      accion_id: ACCIONES_LOG.UPDATE,
       descripcion: `Cierre de caja ID ${caja.id}`,
       registro_id: caja.id,
       datos_anteriores: caja,
@@ -90,7 +91,7 @@ export async function movimientoCaja({ tipo, concepto, monto }, usuario_id) {
     await registrarLog({
       usuario_id,
       tabla: "movimientos_caja",
-      accion: "INSERT",
+      accion_id: ACCIONES_LOG.INSERT,
       descripcion: `Movimiento de caja ID ${id}`,
       registro_id: id,
       datos_nuevos: { tipo, concepto, monto },

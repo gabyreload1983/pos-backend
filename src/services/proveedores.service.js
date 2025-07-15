@@ -1,3 +1,4 @@
+import { ACCIONES_LOG } from "../constants/acciones_log.js";
 import {
   crearProveedor,
   obtenerTodos,
@@ -53,7 +54,7 @@ export async function nuevoProveedor(data, usuario_id) {
   await registrarLog({
     usuario_id,
     tabla: "proveedores",
-    accion: "INSERT",
+    accion_id: ACCIONES_LOG.INSERT,
     descripcion: `Alta de proveedor: ${data.nombre}`,
     registro_id: id,
     datos_nuevos: data,
@@ -95,7 +96,7 @@ export async function actualizarProveedor(id, data, usuario_id) {
   await registrarLog({
     usuario_id,
     tabla: "proveedores",
-    accion: "UPDATE",
+    accion_id: ACCIONES_LOG.UPDATE,
     descripcion: `Modificación del proveedor ID ${id}`,
     registro_id: id,
     datos_anteriores: proveedorAnterior,
@@ -112,7 +113,7 @@ export async function eliminarProveedor(id) {
   await registrarLog({
     usuario_id,
     tabla: "proveedores",
-    accion: "DELETE",
+    accion_id: ACCIONES_LOG.DELETE,
     descripcion: `Baja lógica del proveedor ID ${id}`,
     registro_id: id,
     datos_anteriores: proveedor,

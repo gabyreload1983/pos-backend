@@ -20,6 +20,7 @@ import {
   existenSeriesDuplicadas,
   insertarNumerosSerie,
 } from "../utils/dbHelpers.js";
+import { ACCIONES_LOG } from "../constants/acciones_log.js";
 
 export async function registrarRemitoCompra(data, usuario_id) {
   const connection = await pool.getConnection();
@@ -155,7 +156,7 @@ export async function registrarRemitoCompra(data, usuario_id) {
       await registrarLog({
         usuario_id,
         tabla: "remitos_compra",
-        accion: "INSERT",
+        accion_id: ACCIONES_LOG.INSERT,
         descripcion: `Remito registrado ID ${remito_id} desde compra ID ${data.compra_id}`,
         registro_id: remito_id,
         datos_nuevos: data,
@@ -248,7 +249,7 @@ export async function registrarRemitoCompra(data, usuario_id) {
       await registrarLog({
         usuario_id,
         tabla: "remitos_compra",
-        accion: "INSERT",
+        accion_id: ACCIONES_LOG.INSERT,
         descripcion: `Remito libre registrado ID ${remito_id}`,
         registro_id: remito_id,
         datos_nuevos: data,

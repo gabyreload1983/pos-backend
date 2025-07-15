@@ -1,3 +1,4 @@
+import { ACCIONES_LOG } from "../constants/acciones_log.js";
 import {
   obtenerStockPorSucursal,
   obtenerStockArticuloSucursal,
@@ -25,7 +26,7 @@ export async function actualizarStock(
     await registrarLog({
       usuario_id,
       tabla: "stock",
-      accion: "UPDATE",
+      accion_id: ACCIONES_LOG.UPDATE,
       descripcion: `Stock actualizado para artículo ${articulo_id} en sucursal ${sucursal_id}`,
       registro_id: existente.id,
       datos_anteriores: existente,
@@ -37,7 +38,7 @@ export async function actualizarStock(
     await registrarLog({
       usuario_id,
       tabla: "stock",
-      accion: "INSERT",
+      accion_id: ACCIONES_LOG.INSERT,
       descripcion: `Stock inicial cargado para artículo ${articulo_id} en sucursal ${sucursal_id}`,
       registro_id: id,
       datos_nuevos: { articulo_id, sucursal_id, cantidad },
