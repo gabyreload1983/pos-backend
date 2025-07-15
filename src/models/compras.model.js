@@ -1,11 +1,12 @@
 import { pool } from "../config/db.js";
+import { ESTADOS_REMITO } from "../constants/index.js";
 
 export async function crearCompra(connection, data) {
   const [result] = await connection.query(
     `INSERT INTO compras (
       usuario_id, proveedor_id, sucursal_id,
       tipo_comprobante_id, punto_venta, numero_comprobante,
-      total, observaciones, mueve_stock, estado_remito
+      total, observaciones, mueve_stock, estado_remito_id
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       data.usuario_id,
@@ -17,7 +18,7 @@ export async function crearCompra(connection, data) {
       data.total,
       data.observaciones || null,
       data.mueve_stock ? 1 : 0,
-      data.mueve_stock ? "completo" : "sin remitir",
+      data.mueve_stock ? ESTADOS_REMITO.COMPLETO : ESTADOS_REMITO.SIN_REMITIR,
     ]
   );
   return result.insertId;
