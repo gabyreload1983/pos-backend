@@ -17,7 +17,6 @@ import { existeEnTabla } from "../utils/dbHelpers.js";
 import { registrarLog } from "../utils/logger.js";
 import { ApiError } from "../utils/ApiError.js";
 import { obtenerCotizacionDolarActiva } from "../models/cotizaciones_dolar.model.js";
-import { obtenerMonedaPorId } from "../models/monedas.model.js";
 import { pool } from "../config/db.js";
 import {
   ACCIONES_LOG,
@@ -26,6 +25,7 @@ import {
   TIPOS_MOVIMIENTO_CTACTE,
   ORIGENES_MOVIMIENTOS_STOCK,
 } from "../constants/index.js";
+import { procesarItemsVenta } from "./helpers/procesarItemsVenta.js";
 
 export async function registrarVenta(data, usuario_id, sucursal_id) {
   const caja = await obtenerCajaAbierta(sucursal_id);
@@ -51,55 +51,11 @@ export async function registrarVenta(data, usuario_id, sucursal_id) {
     );
   }
 
-  let total = 0;
-  const itemsProcesados = [];
-
-  for (const item of data.items) {
-    const articulo = await obtenerArticulo(item.articulo_id);
-    if (!articulo)
-      throw new ApiError(`Artículo ID ${item.articulo_id} no válido`, 400);
-
-    if (articulo.controla_stock) {
-      const stock = await obtenerStockArticuloSucursal(
-        item.articulo_id,
-        sucursal_id
-      );
-      if (!stock || stock.cantidad < item.cantidad) {
-        throw new ApiError(
-          `Stock insuficiente para ${articulo.nombre} (stock: ${
-            stock?.cantidad || 0
-          })`,
-          400
-        );
-      }
-    }
-
-    if (Number(item.precio_unitario) < Number(articulo.costo)) {
-      throw new ApiError(
-        `El precio de venta (${item.precio_unitario}) es menor al costo (${articulo.costo}) para ${articulo.nombre}`,
-        400
-      );
-    }
-
-    const moneda = await obtenerMonedaPorId(item.moneda_id);
-    if (!moneda) throw new ApiError("Moneda no válida", 400);
-
-    const cotizacion = moneda.codigo_iso === "USD" ? cotizacionActiva.valor : 1;
-    const subtotalARS = item.precio_unitario * item.cantidad * cotizacion;
-    total += subtotalARS;
-
-    itemsProcesados.push({
-      articulo_id: item.articulo_id,
-      cantidad: item.cantidad,
-      precio_base: item.precio_base,
-      tipo_ajuste_id: item.tipo_ajuste_id,
-      porcentaje_ajuste: item.porcentaje_ajuste,
-      precio_unitario: item.precio_unitario,
-      moneda_id: item.moneda_id,
-      cotizacion_dolar:
-        moneda.codigo_iso === "USD" ? cotizacionActiva.valor : null,
-    });
-  }
+  const { itemsProcesados, total } = await procesarItemsVenta(
+    data.items,
+    sucursal_id,
+    cotizacionActiva
+  );
 
   const connection = await pool.getConnection();
   try {

@@ -7,7 +7,11 @@ export async function obtenerArticulos() {
 
 export async function obtenerArticulo(articulo_id) {
   const [rows] = await pool.query(
-    `SELECT id, nombre, costo, controla_stock FROM articulos WHERE id = ?`,
+    `SELECT 
+      a.id, a.nombre, a.costo, a.controla_stock, a.moneda_id, m.codigo_iso AS moneda_codigo
+     FROM articulos a
+     JOIN monedas m ON a.moneda_id = m.id
+     WHERE a.id = ?`,
     [articulo_id]
   );
   return rows[0] || null;
