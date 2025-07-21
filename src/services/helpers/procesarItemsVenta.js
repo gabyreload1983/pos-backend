@@ -1,12 +1,17 @@
-// src/services/helpers/procesarItemsVenta.js
 import { ApiError } from "../../utils/ApiError.js";
 import { obtenerArticulo } from "../../models/articulos.model.js";
 import { obtenerStockArticuloSucursal } from "../../models/stock.model.js";
 import { calcularPrecioUnitario } from "../../utils/calcularPrecioVenta.js";
 
-export async function procesarItemsVenta(items, sucursal_id, cotizacionActiva) {
+export async function procesarItemsVenta({
+  items,
+  sucursal_id,
+  cotizacionActiva,
+  requiere_afip = false,
+}) {
   const procesados = [];
   let total = 0;
+  let total_iva = 0;
 
   for (const item of items) {
     const articulo = await obtenerArticulo(item.articulo_id);
@@ -44,6 +49,17 @@ export async function procesarItemsVenta(items, sucursal_id, cotizacionActiva) {
     const cotizacion =
       articulo.moneda_codigo === "USD" ? cotizacionActiva.valor : 1;
     const subtotalARS = precio_unitario * item.cantidad * cotizacion;
+
+    let porcentaje_iva = null;
+    let monto_iva = null;
+
+    if (requiere_afip && articulo.porcentaje_iva != null) {
+      porcentaje_iva = parseFloat(articulo.porcentaje_iva);
+      const monto_iva_unitario = precio_unitario * (porcentaje_iva / 100);
+      monto_iva = parseFloat((monto_iva_unitario * item.cantidad).toFixed(2));
+      total_iva += monto_iva;
+    }
+
     total += subtotalARS;
 
     procesados.push({
@@ -56,8 +72,14 @@ export async function procesarItemsVenta(items, sucursal_id, cotizacionActiva) {
       moneda_id: articulo.moneda_id,
       cotizacion_dolar:
         articulo.moneda_codigo === "USD" ? cotizacionActiva.valor : null,
+      porcentaje_iva,
+      monto_iva,
     });
   }
 
-  return { itemsProcesados: procesados, total };
+  return {
+    itemsProcesados: procesados,
+    total: parseFloat(total.toFixed(2)),
+    total_iva: parseFloat(total_iva.toFixed(2)),
+  };
 }

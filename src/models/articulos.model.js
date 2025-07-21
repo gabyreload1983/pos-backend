@@ -8,9 +8,20 @@ export async function obtenerArticulos() {
 export async function obtenerArticulo(articulo_id) {
   const [rows] = await pool.query(
     `SELECT 
-      a.id, a.nombre, a.costo, a.controla_stock, a.moneda_id, m.codigo_iso AS moneda_codigo
+        a.id,
+        a.nombre,
+        a.costo,
+        a.controla_stock,
+        a.moneda_id,
+        m.codigo_iso      AS moneda_codigo,
+        a.iva_aliquota_id,
+        ia.porcentaje     AS porcentaje_iva,
+        ia.descripcion    AS iva_descripcion
      FROM articulos a
-     JOIN monedas m ON a.moneda_id = m.id
+     JOIN monedas m 
+       ON a.moneda_id = m.id
+     JOIN iva_aliquotas ia 
+       ON a.iva_aliquota_id = ia.id
      WHERE a.id = ?`,
     [articulo_id]
   );

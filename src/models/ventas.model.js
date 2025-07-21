@@ -1,34 +1,61 @@
 import { pool } from "../config/db.js";
 
-export async function crearVenta(connection, ventaData) {
+export async function crearVenta({ connection, ventaData }) {
   const [ventaResult] = await connection.query(
-    `INSERT INTO ventas (cliente_id, usuario_id, caja_id, total, tipo_pago_id, observaciones)
-     VALUES (?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO ventas (
+        cliente_id,
+        usuario_id,
+        caja_id,
+        total,
+        total_iva,
+        tipo_pago_id,
+        observaciones,
+        tipo_comprobante,
+        punto_venta,
+        numero_comprobante
+     )
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       ventaData.cliente_id,
       ventaData.usuario_id,
       ventaData.caja_id,
       ventaData.total,
+      ventaData.total_iva,
       ventaData.tipo_pago_id,
       ventaData.observaciones,
+      ventaData.tipo_comprobante,
+      ventaData.punto_venta,
+      ventaData.numero_comprobante,
     ]
   );
 
   return ventaResult.insertId;
 }
 
-export async function crearDetalleVenta(connection, venta_id, items) {
-  const detalles = items.map((i) => [
-    venta_id,
-    i.articulo_id,
-    i.cantidad,
-    i.precio_base,
-    i.tipo_ajuste_id || 1,
-    i.porcentaje_ajuste || 0.0,
-    i.precio_unitario,
-    i.moneda_id,
-    i.cotizacion_dolar,
-  ]);
+export async function crearDetalleVenta({
+  connection,
+  venta_id,
+  items,
+  requiere_afip = false,
+}) {
+  const detalles = items.map((i) => {
+    const porcentaje_iva = requiere_afip ? i.porcentaje_iva : null;
+    const monto_iva = requiere_afip ? i.monto_iva : null;
+
+    return [
+      venta_id,
+      i.articulo_id,
+      i.cantidad,
+      i.precio_base,
+      i.tipo_ajuste_id || 1,
+      i.porcentaje_ajuste || 0.0,
+      i.precio_unitario,
+      i.moneda_id,
+      i.cotizacion_dolar,
+      porcentaje_iva,
+      monto_iva,
+    ];
+  });
 
   await connection.query(
     `INSERT INTO detalle_venta (
@@ -40,7 +67,9 @@ export async function crearDetalleVenta(connection, venta_id, items) {
        porcentaje_ajuste,
        precio_unitario,
        moneda_id,
-       cotizacion_dolar
+       cotizacion_dolar,
+       porcentaje_iva,
+       monto_iva
      ) VALUES ?`,
     [detalles]
   );

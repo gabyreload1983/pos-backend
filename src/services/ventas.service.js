@@ -51,26 +51,41 @@ export async function registrarVenta(data, usuario_id, sucursal_id) {
     );
   }
 
-  const { itemsProcesados, total } = await procesarItemsVenta(
-    data.items,
+  const requiereAfip = Boolean(data.tipo_comprobante_id);
+
+  const { itemsProcesados, total, total_iva } = await procesarItemsVenta({
+    items: data.items,
     sucursal_id,
-    cotizacionActiva
-  );
+    cotizacionActiva,
+    requiere_afip: requiereAfip,
+  });
 
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
 
-    const venta_id = await crearVenta(connection, {
-      cliente_id: data.cliente_id,
-      usuario_id,
-      caja_id: caja.id,
-      tipo_pago_id: data.tipo_pago_id,
-      observaciones: data.observaciones || null,
-      total,
+    const venta_id = await crearVenta({
+      connection,
+      ventaData: {
+        cliente_id: data.cliente_id,
+        usuario_id,
+        caja_id: caja.id,
+        tipo_pago_id: data.tipo_pago_id,
+        observaciones: data.observaciones || null,
+        total,
+        total_iva,
+        tipo_comprobante: data.tipo_comprobante_id || null,
+        punto_venta: data.punto_venta || null,
+        numero_comprobante: data.numero_comprobante || null,
+      },
     });
 
-    await crearDetalleVenta(connection, venta_id, itemsProcesados);
+    await crearDetalleVenta({
+      connection,
+      venta_id,
+      items: itemsProcesados,
+      requiere_afip: requiereAfip,
+    });
 
     for (const item of itemsProcesados) {
       const articulo = await obtenerArticulo(item.articulo_id);
