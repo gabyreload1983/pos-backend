@@ -9,12 +9,9 @@ export async function crearVenta({ connection, ventaData }) {
         total,
         total_iva,
         tipo_pago_id,
-        observaciones,
-        tipo_comprobante,
-        punto_venta,
-        numero_comprobante
+        observaciones
      )
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
     [
       ventaData.cliente_id,
       ventaData.usuario_id,
@@ -23,9 +20,6 @@ export async function crearVenta({ connection, ventaData }) {
       ventaData.total_iva,
       ventaData.tipo_pago_id,
       ventaData.observaciones,
-      ventaData.tipo_comprobante,
-      ventaData.punto_venta,
-      ventaData.numero_comprobante,
     ]
   );
 

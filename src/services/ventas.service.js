@@ -26,6 +26,8 @@ import {
   ORIGENES_MOVIMIENTOS_STOCK,
 } from "../constants/index.js";
 import { procesarItemsVenta } from "./helpers/procesarItemsVenta.js";
+import { emitirFacturaAFIP } from "./afip.service.js";
+import { crearComprobanteElectronico } from "../models/comprobantes_electronicos.js";
 
 export async function registrarVenta(data, usuario_id, sucursal_id) {
   const caja = await obtenerCajaAbierta(sucursal_id);
@@ -86,6 +88,27 @@ export async function registrarVenta(data, usuario_id, sucursal_id) {
       items: itemsProcesados,
       requiere_afip: requiereAfip,
     });
+
+    if (requiereAfip) {
+      const afipResp = await emitirFacturaAFIP({
+        ventaId: venta_id,
+        tipoComprobante: data.tipo_comprobante_id,
+        puntoVenta: data.punto_venta,
+        items: itemsProcesados.map((i) => ({
+          articuloId: i.articulo_id,
+          cantidad: i.cantidad,
+          precioUnitario: i.precio_unitario,
+          porcentajeIVA: i.porcentaje_iva,
+        })),
+      });
+
+      await crearComprobanteElectronico(connection, {
+        venta_id: venta_id,
+        tipo_comprobante_id: data.tipo_comprobante_id,
+        punto_venta: data.punto_venta,
+        ...afipResp,
+      });
+    }
 
     for (const item of itemsProcesados) {
       const articulo = await obtenerArticulo(item.articulo_id);
