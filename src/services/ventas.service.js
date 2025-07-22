@@ -73,9 +73,6 @@ export async function registrarVenta(data, usuario_id, sucursal_id) {
         observaciones: data.observaciones || null,
         total,
         total_iva,
-        tipo_comprobante: data.tipo_comprobante_id || null,
-        punto_venta: data.punto_venta || null,
-        numero_comprobante: data.numero_comprobante || null,
       },
     });
 
