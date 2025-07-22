@@ -1,9 +1,9 @@
 export async function emitirFacturaAFIP() {
   return {
-    numero_comprobante: 1235,
+    numeroComprobante: 1236,
     cae: "cae123",
-    cae_vencimiento: "2025-10-10",
-    afip_estado_id: 1,
+    caeVencimiento: "2025-10-10",
+    afipEstadoId: 1,
     raw: "afip_response raw data",
   };
 }

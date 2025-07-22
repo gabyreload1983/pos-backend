@@ -5,14 +5,14 @@ export async function crearComprobanteElectronico(connection, facturaData) {
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `;
   const params = [
-    facturaData.venta_id,
-    facturaData.tipo_comprobante_id,
-    facturaData.punto_venta,
-    facturaData.numero_comprobante,
+    facturaData.ventaId,
+    facturaData.tipoComprobanteId,
+    facturaData.puntoVenta,
+    facturaData.numeroComprobante,
     facturaData.cae,
-    facturaData.cae_vencimiento,
-    facturaData.afip_estado_id,
-    facturaData.afip_response,
+    facturaData.caeVencimiento,
+    facturaData.afipEstadoId,
+    facturaData.afipResponse,
   ];
   await connection.query(sql, params);
 }

@@ -84,27 +84,34 @@ export async function registrarVenta(data, usuario_id, sucursal_id) {
     });
 
     if (requiereAfip) {
-      const afipResp = await emitirFacturaAFIP({
-        ventaId: venta_id,
-        tipoComprobante: data.tipo_comprobante_id,
-        puntoVenta: data.punto_venta,
-        items: itemsProcesados.map((i) => ({
-          articuloId: i.articulo_id,
-          cantidad: i.cantidad,
-          precioUnitario: i.precio_unitario,
-          porcentajeIVA: i.porcentaje_iva,
-        })),
-      });
-
+      let afipResp;
+      try {
+        afipResp = await emitirFacturaAFIP({
+          ventaId: venta_id,
+          tipoComprobanteId: data.tipo_comprobante_id,
+          puntoVenta: data.punto_venta,
+          items: itemsProcesados.map((i) => ({
+            articuloId: i.articulo_id,
+            cantidad: i.cantidad,
+            precioUnitario: i.precio_unitario,
+            porcentajeIVA: i.porcentaje_iva,
+          })),
+        });
+      } catch (afipError) {
+        throw new ApiError(
+          `Error al emitir comprobante en AFIP: ${afipError.message}`,
+          502
+        );
+      }
       await crearComprobanteElectronico(connection, {
-        venta_id,
-        tipo_comprobante_id: data.tipo_comprobante_id,
-        punto_venta: data.punto_venta,
-        numero_comprobante: afipResp.numero_comprobante,
+        ventaId: venta_id,
+        tipoComprobanteId: data.tipo_comprobante_id,
+        puntoVenta: data.punto_venta,
+        numeroComprobante: afipResp.numeroComprobante,
         cae: afipResp.cae,
-        cae_vencimiento: afipResp.cae_vencimiento,
-        afip_estado_id: afipResp.afip_estado_id,
-        afip_response: JSON.stringify(afipResp.raw),
+        caeVencimiento: afipResp.caeVencimiento,
+        afipEstadoId: afipResp.afipEstadoId,
+        afipResponse: JSON.stringify(afipResp.raw),
       });
     }
 
