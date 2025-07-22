@@ -71,9 +71,18 @@ export async function crearDetalleVenta({
 
 export async function obtenerVentaPorId(id) {
   const [ventas] = await pool.query(
-    `SELECT v.*, c.nombre AS cliente
+    `SELECT 
+       v.*, c.nombre AS cliente,
+       ce.tipo_comprobante_id,
+       ce.punto_venta,
+       ce.numero_comprobante,
+       ce.cae,
+       ce.cae_vencimiento,
+       ce.afip_estado_id,
+       ce.afip_response
      FROM ventas v
      LEFT JOIN clientes c ON v.cliente_id = c.id
+     LEFT JOIN comprobantes_electronicos ce ON ce.venta_id = v.id
      WHERE v.id = ?`,
     [id]
   );
