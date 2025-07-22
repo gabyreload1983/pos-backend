@@ -6,10 +6,7 @@ import {
 } from "../models/ventas.model.js";
 import { obtenerCajaAbierta } from "../models/cajas.model.js";
 import { obtenerArticulo } from "../models/articulos.model.js";
-import {
-  obtenerStockArticuloSucursal,
-  descontarStock,
-} from "../models/stock.model.js";
+import { descontarStock } from "../models/stock.model.js";
 import { registrarMovimientoStock } from "../models/movimientos_stock.model.js";
 import { registrarMovimientoCaja } from "../models/movimientos_caja.model.js";
 import { registrarMovimientoCuentaCorriente } from "../models/cuentas_corrientes.model.js";
@@ -27,7 +24,7 @@ import {
 } from "../constants/index.js";
 import { procesarItemsVenta } from "./helpers/procesarItemsVenta.js";
 import { emitirFacturaAFIP } from "./afip.service.js";
-import { crearComprobanteElectronico } from "../models/comprobantes_electronicos.js";
+import { crearComprobanteElectronico } from "../models/comprobantes_electronicos.model.js";
 
 export async function registrarVenta(data, usuario_id, sucursal_id) {
   const caja = await obtenerCajaAbierta(sucursal_id);
