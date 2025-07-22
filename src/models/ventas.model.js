@@ -107,18 +107,24 @@ export async function obtenerVentaPorId(id) {
 
 export async function obtenerVentas() {
   const [rows] = await pool.query(
-    `SELECT 
-      v.id,
-      v.fecha,
-      v.total,
-      tp.nombre AS tipo_pago,
-      u.nombre AS usuario,
-      c.nombre AS cliente
-      FROM ventas v
-      JOIN usuarios u ON v.usuario_id = u.id
-      JOIN tipos_pago tp ON v.tipo_pago_id = tp.id
-      LEFT JOIN clientes c ON v.cliente_id = c.id
-      ORDER BY v.fecha DESC`
+    `SELECT
+       v.id,
+       v.fecha,
+       v.total,
+       tp.nombre AS tipo_pago,
+       u.nombre AS usuario,
+       c.nombre AS cliente,
+       CASE 
+         WHEN ce.id IS NOT NULL THEN 'electronico' 
+         ELSE 'no-electronico' 
+       END AS tipo_venta
+     FROM ventas v
+     JOIN usuarios u ON v.usuario_id = u.id
+     JOIN tipos_pago tp ON v.tipo_pago_id = tp.id
+     LEFT JOIN clientes c ON v.cliente_id = c.id
+     LEFT JOIN comprobantes_electronicos ce 
+     ON ce.venta_id = v.id
+     ORDER BY v.fecha DESC`
   );
 
   return rows;
