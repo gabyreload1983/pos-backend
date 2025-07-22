@@ -103,10 +103,14 @@ export async function registrarVenta(data, usuario_id, sucursal_id) {
       });
 
       await crearComprobanteElectronico(connection, {
-        venta_id: venta_id,
+        venta_id,
         tipo_comprobante_id: data.tipo_comprobante_id,
         punto_venta: data.punto_venta,
-        ...afipResp,
+        numero_comprobante: afipResp.numero_comprobante,
+        cae: afipResp.cae,
+        cae_vencimiento: afipResp.cae_vencimiento,
+        afip_estado_id: afipResp.afip_estado_id,
+        afip_response: JSON.stringify(afipResp.raw),
       });
     }
 
