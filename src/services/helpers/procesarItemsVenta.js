@@ -3,7 +3,7 @@ import { obtenerArticulo } from "../../models/articulos.model.js";
 import { obtenerStockArticuloSucursal } from "../../models/stock.model.js";
 import { calcularPrecioUnitario } from "../../utils/calcularPrecioVenta.js";
 import { obtenerEstadoSerie } from "../../utils/dbHelpers.js";
-import { ESTADOS_NUMEROS_SERIE } from "../../constants/estados_numeros_serie.js";
+import { ESTADOS_NUMEROS_SERIE } from "../../constants/index.js";
 
 export async function procesarItemsVenta({
   items,

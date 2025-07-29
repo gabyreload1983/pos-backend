@@ -1,5 +1,5 @@
 import { pool } from "../config/db.js";
-import { ESTADOS_NUMEROS_SERIE } from "../constants/estados_numeros_serie.js";
+import { ESTADOS_NUMEROS_SERIE } from "../constants/index.js";
 
 export async function existeEnTabla(tabla, id) {
   const [rows] = await pool.query(`SELECT id FROM ${tabla} WHERE id = ?`, [id]);
