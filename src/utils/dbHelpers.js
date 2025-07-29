@@ -1,5 +1,5 @@
 import { pool } from "../config/db.js";
-import { ESTADOS_NUMEROS_SERIE } from "../constants/estados_numeros_serie";
+import { ESTADOS_NUMEROS_SERIE } from "../constants/estados_numeros_serie.js";
 
 export async function existeEnTabla(tabla, id) {
   const [rows] = await pool.query(`SELECT id FROM ${tabla} WHERE id = ?`, [id]);
@@ -56,4 +56,32 @@ export async function insertarNumerosSerie(
       ]),
     ]
   );
+}
+
+export async function obtenerEstadoSerie(articulo_id, sucursal_id, nro_serie) {
+  const [rows] = await pool.query(
+    `
+    SELECT 
+    ns.nro_serie,
+    ens.id AS estado_id,
+    ens.nombre AS estado
+    FROM numeros_serie ns
+    LEFT JOIN estados_numeros_serie ens
+    ON ns.estado_id = ens.id
+    WHERE articulo_id = ? AND sucursal_id = ? AND nro_serie = ?
+    `,
+    [articulo_id, sucursal_id, nro_serie]
+  );
+
+  return rows[0] || null;
+}
+
+export async function venderNumeroSerie(articulo_id, serie, sucursal_id) {
+  const [result] = await pool.query(
+    `UPDATE numeros_serie SET estado_id = ${ESTADOS_NUMEROS_SERIE.VENDIDO} 
+      WHERE articulo_id = ? AND sucursal_id = ? AND nro_serie = ?
+      `,
+    [articulo_id, sucursal_id, serie]
+  );
+  return result.affectedRows;
 }

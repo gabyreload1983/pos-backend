@@ -2,6 +2,8 @@ import { ApiError } from "../../utils/ApiError.js";
 import { obtenerArticulo } from "../../models/articulos.model.js";
 import { obtenerStockArticuloSucursal } from "../../models/stock.model.js";
 import { calcularPrecioUnitario } from "../../utils/calcularPrecioVenta.js";
+import { obtenerEstadoSerie } from "../../utils/dbHelpers.js";
+import { ESTADOS_NUMEROS_SERIE } from "../../constants/estados_numeros_serie.js";
 
 export async function procesarItemsVenta({
   items,
@@ -30,6 +32,21 @@ export async function procesarItemsVenta({
           })`,
           400
         );
+      }
+    }
+
+    if (articulo.tiene_nro_serie) {
+      for (const serie of item?.series) {
+        const result = await obtenerEstadoSerie(
+          item.articulo_id,
+          sucursal_id,
+          serie
+        );
+        if (!result || result?.estado_id !== ESTADOS_NUMEROS_SERIE.DISPONIBLE)
+          throw new ApiError(
+            `Serie ${serie} de ${articulo.nombre} no disponible`,
+            400
+          );
       }
     }
 
@@ -65,6 +82,7 @@ export async function procesarItemsVenta({
     procesados.push({
       articulo_id: item.articulo_id,
       cantidad: item.cantidad,
+      series: item?.series || [],
       precio_base: item.precio_base,
       tipo_ajuste_id: item.tipo_ajuste_id,
       porcentaje_ajuste: item.porcentaje_ajuste ?? 0,

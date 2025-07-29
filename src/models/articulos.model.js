@@ -13,6 +13,7 @@ export async function obtenerArticulo(articulo_id) {
         a.costo,
         a.controla_stock,
         a.moneda_id,
+        a.tiene_nro_serie,
         m.codigo_iso      AS moneda_codigo,
         a.iva_aliquota_id,
         ia.porcentaje     AS porcentaje_iva,

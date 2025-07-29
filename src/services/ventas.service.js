@@ -10,7 +10,7 @@ import { descontarStock } from "../models/stock.model.js";
 import { registrarMovimientoStock } from "../models/movimientos_stock.model.js";
 import { registrarMovimientoCaja } from "../models/movimientos_caja.model.js";
 import { registrarMovimientoCuentaCorriente } from "../models/cuentas_corrientes.model.js";
-import { existeEnTabla } from "../utils/dbHelpers.js";
+import { existeEnTabla, venderNumeroSerie } from "../utils/dbHelpers.js";
 import { registrarLog } from "../utils/logger.js";
 import { ApiError } from "../utils/ApiError.js";
 import { obtenerCotizacionDolarActiva } from "../models/cotizaciones_dolar.model.js";
@@ -128,6 +128,11 @@ export async function registrarVenta(data, usuario_id, sucursal_id) {
           origen_id_externo: venta_id,
           observaciones: `Venta ID ${venta_id}`,
         });
+      }
+      if (articulo.tiene_nro_serie) {
+        for (const serie of item.series) {
+          await venderNumeroSerie(item.articulo_id, serie, sucursal_id);
+        }
       }
     }
 
