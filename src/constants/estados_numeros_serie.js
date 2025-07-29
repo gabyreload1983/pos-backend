@@ -1,0 +1,5 @@
+export const ESTADOS_NUMEROS_SERIE = {
+  DISPONIBLE: 1,
+  VENDIDO: 2,
+  DEVUELTO: 3,
+};

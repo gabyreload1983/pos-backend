@@ -167,8 +167,8 @@ export async function registrarCompra(data, usuario_id) {
         }
 
         if (data.actualizar_costo) {
-          const { costo_anterior, precio_venta_anterior } =
-            await obtenerCostoYPrecioVenta(item.articulo_id);
+          const { costo: costo_anterior, precio_venta: precio_venta_anterior } =
+            await obtenerCostoYPrecioVenta(connection, item.articulo_id);
 
           await actualizarCostoArticulo(
             connection,
@@ -176,6 +176,9 @@ export async function registrarCompra(data, usuario_id) {
             item.costo_unitario
           );
           await recalcularPrecioVenta(connection, item.articulo_id);
+
+          const { costo: costo_nuevo, precio_venta: precio_nuevo } =
+            await obtenerCostoYPrecioVenta(connection, item.articulo_id);
 
           await registrarLog({
             usuario_id,
@@ -188,8 +191,8 @@ export async function registrarCompra(data, usuario_id) {
               precio_venta: precio_venta_anterior,
             },
             datos_nuevos: {
-              costo: item.costo_unitario,
-              precio_venta: nuevo_precio_venta,
+              costo: costo_nuevo,
+              precio_venta: precio_nuevo,
             },
           });
         }

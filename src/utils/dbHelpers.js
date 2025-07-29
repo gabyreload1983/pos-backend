@@ -1,4 +1,5 @@
 import { pool } from "../config/db.js";
+import { ESTADOS_NUMEROS_SERIE } from "../constants/estados_numeros_serie";
 
 export async function existeEnTabla(tabla, id) {
   const [rows] = await pool.query(`SELECT id FROM ${tabla} WHERE id = ?`, [id]);
@@ -44,8 +45,15 @@ export async function insertarNumerosSerie(
 ) {
   if (!series?.length) return;
   await connection.query(
-    `INSERT INTO numeros_serie (articulo_id, nro_serie, sucursal_id, estado)
+    `INSERT INTO numeros_serie (articulo_id, nro_serie, sucursal_id, estado_id)
      VALUES ?`,
-    [series.map((nro) => [articulo_id, nro, sucursal_id, "disponible"])]
+    [
+      series.map((nro) => [
+        articulo_id,
+        nro,
+        sucursal_id,
+        ESTADOS_NUMEROS_SERIE.DISPONIBLE,
+      ]),
+    ]
   );
 }

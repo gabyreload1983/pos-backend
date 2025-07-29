@@ -156,14 +156,14 @@ export async function tieneNroSerie(articulo_id) {
   return result[0]?.tiene_nro_serie === 1;
 }
 
-export async function obtenerCostoYPrecioVenta(articulo_id) {
-  const [[row]] = await pool.query(
+export async function obtenerCostoYPrecioVenta(connection, articulo_id) {
+  const [[row]] = await connection.query(
     `SELECT costo, precio_venta FROM articulos WHERE id = ?`,
     [articulo_id]
   );
   return {
-    costo_anterior: row?.costo ?? null,
-    precio_venta_anterior: row?.precio_venta ?? null,
+    costo: row?.costo ?? null,
+    precio_venta: row?.precio_venta ?? null,
   };
 }
 
@@ -187,7 +187,7 @@ export async function recalcularPrecioVenta(connection, articulo_id) {
   if (!articulo) return;
 
   const precio_venta = +(
-    articulo.costo +
+    +articulo.costo +
     (articulo.costo * articulo.renta) / 100
   ).toFixed(2);
 
