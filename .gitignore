@@ -2,3 +2,7 @@ node_modules
 .env
 .env.development
 pendientes.txt
+/src/config/afip/certs/*.pem
+/src/config/afip/certs/*.key
+/src/config/afip/certs/*.crt
+/src/config/afip/certs/*.csr
