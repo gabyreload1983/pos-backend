@@ -90,12 +90,9 @@ export async function registrarVenta(data, usuario_id, sucursal_id) {
           ventaId: venta_id,
           tipoComprobanteId: data.tipo_comprobante_id,
           puntoVenta: data.punto_venta,
-          items: itemsProcesados.map((i) => ({
-            articuloId: i.articulo_id,
-            cantidad: i.cantidad,
-            precioUnitario: i.precio_unitario,
-            porcentajeIVA: i.porcentaje_iva,
-          })),
+          total,
+          total_iva,
+          items: itemsProcesados,
         });
       } catch (afipError) {
         throw new ApiError(

@@ -81,6 +81,7 @@ export async function procesarItemsVenta({
 
     procesados.push({
       articulo_id: item.articulo_id,
+      descripcion: articulo.nombre,
       cantidad: item.cantidad,
       series: item?.series || [],
       precio_base: item.precio_base,
