@@ -1,6 +1,7 @@
 import { pool } from "../config/db.js";
 import {
   ACCIONES_LOG,
+  MONEDAS,
   ORIGENES_MOVIMIENTOS_STOCK,
 } from "../constants/index.js";
 import {
@@ -29,6 +30,7 @@ import {
   insertarNumerosSerie,
 } from "../utils/dbHelpers.js";
 import { registrarLog } from "../utils/logger.js";
+import { procesarItemsCompra } from "./helpers/procesarItemsCompra.js";
 
 export async function registrarCompra(data, usuario_id) {
   const errores = [];
@@ -50,27 +52,6 @@ export async function registrarCompra(data, usuario_id) {
       campo: "tipo_comprobante_id",
       mensaje: "Tipo de comprobante no válido",
     });
-
-  for (let i = 0; i < data.items.length; i++) {
-    const item = data.items[i];
-    const erroresItem = [];
-
-    const articuloOK = await existeEnTabla("articulos", item.articulo_id);
-    if (!articuloOK)
-      erroresItem.push({
-        campo: `items[${i}].articulo_id`,
-        mensaje: "Artículo no válido",
-      });
-
-    const monedaOK = await existeEnTabla("monedas", item.moneda_id);
-    if (!monedaOK)
-      erroresItem.push({
-        campo: `items[${i}].moneda_id`,
-        mensaje: "Moneda no válida",
-      });
-
-    errores.push(...erroresItem);
-  }
 
   if (errores.length > 0) {
     throw ApiError.validation(errores);
@@ -98,13 +79,18 @@ export async function registrarCompra(data, usuario_id) {
       usuario_id,
     });
 
+    const itemsCompra = await procesarItemsCompra({
+      itemsBrutos: data.items,
+      cotizacionDolar: data.cotizacion_dolar,
+    });
+
     // 2. Detalle de artículos
-    await insertarDetalleCompra(connection, compra_id, data.items);
+    await insertarDetalleCompra(connection, compra_id, itemsCompra);
 
     // 3. Actualizar stock y registrar movimientos
 
     if (data.mueve_stock) {
-      for (const item of data.items) {
+      for (const item of itemsCompra) {
         await actualizarStock(
           connection,
           item.articulo_id,
@@ -169,6 +155,9 @@ export async function registrarCompra(data, usuario_id) {
         if (data.actualizar_costo) {
           const { costo: costo_anterior, precio_venta: precio_venta_anterior } =
             await obtenerCostoYPrecioVenta(connection, item.articulo_id);
+
+          if (item.moneda_id !== MONEDAS.ARS)
+            item.costo_unitario = item.costo_unitario / item.cotizacion_dolar;
 
           await actualizarCostoArticulo(
             connection,

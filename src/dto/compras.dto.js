@@ -4,8 +4,6 @@ export const itemCompraSchema = z.object({
   articulo_id: z.number().int().positive(),
   cantidad: z.number().int().min(1),
   costo_unitario: z.number().nonnegative(),
-  moneda_id: z.number().int().positive(),
-  cotizacion_dolar: z.number().nonnegative().nullable().optional(),
   series: z.array(z.string().min(1)).optional(),
 });
 
@@ -15,17 +13,17 @@ export const createCompraSchema = z.object({
   tipo_comprobante_id: z.number().int().positive(),
   punto_venta: z.number().int(),
   numero_comprobante: z.number().int(),
-  total: z.number().nonnegative(),
+  total: z.number().positive(),
   observaciones: z.string().optional(),
-  items: z.array(itemCompraSchema).min(1),
   mueve_stock: z.union([z.literal(1), z.literal(0)]).default(1),
-  actualizar_costo: z.boolean().optional().default(true),
+  actualizar_costo: z.union([z.literal(1), z.literal(0)]).default(1),
+  cotizacion_dolar: z.number().positive(),
+  items: z.array(itemCompraSchema).min(1),
 });
 
 export const itemCompraDesdeRemitosSchema = z.object({
   articulo_id: z.number().int().positive(),
-  costo_unitario: z.number().nonnegative(),
-  cotizacion_dolar: z.number().nonnegative().nullable().optional(),
+  costo_unitario: z.number().positive(),
 });
 
 export const createCompraDesdeRemitosSchema = z.object({
@@ -34,8 +32,10 @@ export const createCompraDesdeRemitosSchema = z.object({
   tipo_comprobante_id: z.number().int().positive(),
   punto_venta: z.number().int(),
   numero_comprobante: z.number().int(),
-  total: z.number().nonnegative(),
+  total: z.number().positive(),
   observaciones: z.string().optional(),
   remitos_id: z.array(z.number().int().positive()).min(1),
+  actualizar_costo: z.union([z.literal(1), z.literal(0)]).default(1),
+  cotizacion_dolar: z.number().positive(),
   items: z.array(itemCompraDesdeRemitosSchema).min(1),
 });

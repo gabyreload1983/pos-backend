@@ -3,6 +3,7 @@ export * from "./estados_afip.js";
 export * from "./estados_numeros_serie.js";
 export * from "./estados_remito.js";
 export * from "./formas_pago.js";
+export * from "./monedas.js";
 export * from "./motivos_movimientos_caja.js";
 export * from "./origenes_movimientos_stock.js";
 export * from "./tipos_ajuste.js";
