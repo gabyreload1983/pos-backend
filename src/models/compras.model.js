@@ -51,7 +51,7 @@ export async function insertarDetalleCompra(connection, compra_id, items) {
     await connection.query(
       `INSERT INTO detalle_compra (
         compra_id, articulo_id, cantidad,
-        costo_unitario, moneda_id, cotizacion_dolar
+        costo_unitario, moneda_id, tasa_cambio
       ) VALUES (?, ?, ?, ?, ?, ?)`,
       [
         compra_id,
@@ -59,7 +59,7 @@ export async function insertarDetalleCompra(connection, compra_id, items) {
         item.cantidad,
         item.costo_unitario,
         item.moneda_id,
-        item.cotizacion_dolar || null,
+        item.tasa_cambio || null,
       ]
     );
   }

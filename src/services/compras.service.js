@@ -60,7 +60,7 @@ export async function registrarCompra(data, usuario_id) {
 
     const itemsCompra = await procesarItemsCompra({
       itemsBrutos: data.items,
-      cotizacionDolar: data.cotizacion_dolar,
+      tasaCambio: data.tasa_cambio,
     });
 
     // 2. Detalle de artículos
@@ -134,9 +134,6 @@ export async function registrarCompra(data, usuario_id) {
         if (data.actualizar_costo) {
           const { costo: costo_anterior, precio_venta: precio_venta_anterior } =
             await obtenerCostoYPrecioVenta(connection, item.articulo_id);
-
-          if (item.moneda_id !== MONEDAS.ARS)
-            item.costo_unitario = item.costo_unitario / item.cotizacion_dolar;
 
           await actualizarCostoArticulo(
             connection,
@@ -263,7 +260,7 @@ export async function registrarCompraDesdeRemitos(data, usuario_id) {
       await connection.query(
         `INSERT INTO detalle_compra (
           compra_id, articulo_id, cantidad, costo_unitario,
-          moneda_id, cotizacion_dolar
+          moneda_id, tasa_cambio
         ) VALUES (?, ?, ?, ?, ?, ?)`,
         [
           compra_id,
@@ -271,7 +268,7 @@ export async function registrarCompraDesdeRemitos(data, usuario_id) {
           cantidad,
           item.costo_unitario,
           moneda_id,
-          item.cotizacion_dolar ?? null,
+          item.tasa_cambio ?? null,
         ]
       );
 

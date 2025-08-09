@@ -17,7 +17,7 @@ export const createCompraSchema = z.object({
   observaciones: z.string().optional(),
   mueve_stock: z.union([z.literal(1), z.literal(0)]).default(1),
   actualizar_costo: z.union([z.literal(1), z.literal(0)]).default(1),
-  cotizacion_dolar: z.number().positive(),
+  tasa_cambio: z.number().positive(),
   items: z.array(itemCompraSchema).min(1),
 });
 
@@ -36,6 +36,6 @@ export const createCompraDesdeRemitosSchema = z.object({
   observaciones: z.string().optional(),
   remitos_id: z.array(z.number().int().positive()).min(1),
   actualizar_costo: z.union([z.literal(1), z.literal(0)]).default(1),
-  cotizacion_dolar: z.number().positive(),
+  tasa_cambio: z.number().positive(),
   items: z.array(itemCompraDesdeRemitosSchema).min(1),
 });

@@ -45,7 +45,7 @@ export async function crearDetalleVenta({
       i.porcentaje_ajuste || 0.0,
       i.precio_unitario,
       i.moneda_id,
-      i.cotizacion_dolar,
+      i.tasa_cambio,
       porcentaje_iva,
       monto_iva,
     ];
@@ -61,7 +61,7 @@ export async function crearDetalleVenta({
        porcentaje_ajuste,
        precio_unitario,
        moneda_id,
-       cotizacion_dolar,
+       tasa_cambio,
        porcentaje_iva,
        monto_iva
      ) VALUES ?`,

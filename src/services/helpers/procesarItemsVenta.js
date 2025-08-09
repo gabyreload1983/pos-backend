@@ -89,7 +89,7 @@ export async function procesarItemsVenta({
       porcentaje_ajuste: item.porcentaje_ajuste ?? 0,
       precio_unitario,
       moneda_id: articulo.moneda_id,
-      cotizacion_dolar:
+      tasa_cambio:
         articulo.moneda_codigo === "USD" ? cotizacionActiva.valor : null,
       porcentaje_iva,
       monto_iva,
