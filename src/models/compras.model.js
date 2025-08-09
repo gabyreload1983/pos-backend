@@ -24,6 +24,28 @@ export async function crearCompra(connection, data) {
   return result.insertId;
 }
 
+export async function crearCompraDesdeRemitos({ connection, data }) {
+  const [result] = await connection.query(
+    `INSERT INTO compras (
+        usuario_id, proveedor_id, sucursal_id, tipo_comprobante_id,
+        punto_venta, numero_comprobante, total, observaciones,
+        estado_remito, mueve_stock, usuario_id
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, 'completo', 0, ?)`,
+    [
+      data.usuario_id,
+      data.proveedor_id,
+      data.sucursal_id,
+      data.tipo_comprobante_id,
+      data.punto_venta,
+      data.numero_comprobante,
+      data.total,
+      data.observaciones ?? null,
+      usuario_id,
+    ]
+  );
+  return result.insertId;
+}
+
 export async function insertarDetalleCompra(connection, compra_id, items) {
   for (const item of items) {
     await connection.query(

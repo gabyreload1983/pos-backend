@@ -93,3 +93,12 @@ export async function actualizarEstadoRemitoCompra(
     [estado_remito_id, compra_id]
   );
 }
+
+export async function validarRemitosCompra({ remitosId }) {
+  const [remitos] = await connection.query(
+    `SELECT id FROM remitos_compra WHERE id IN (?)`,
+    [remitosId]
+  );
+
+  return remitos || null;
+}

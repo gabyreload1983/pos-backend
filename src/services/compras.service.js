@@ -12,11 +12,13 @@ import {
 } from "../models/articulos.model.js";
 import {
   crearCompra,
+  crearCompraDesdeRemitos,
   insertarDetalleCompra,
   insertarDetalleCompraSeries,
   obtenerCompraPorId,
   obtenerCompras,
 } from "../models/compras.model.js";
+import { validarRemitosCompra } from "../models/remitos_compra.model.js";
 import {
   actualizarStock,
   obtenerComprasPorProveedor,
@@ -33,6 +35,7 @@ import { registrarLog } from "../utils/logger.js";
 import { procesarItemsCompra } from "./helpers/procesarItemsCompra.js";
 
 export async function registrarCompra(data, usuario_id) {
+  //TODO mover logica validacion
   const errores = [];
 
   const proveedorOK = await existeEnTabla("proveedores", data.proveedor_id);
@@ -209,17 +212,18 @@ export async function registrarCompra(data, usuario_id) {
   }
 }
 
+//TODO restructurar
 export async function registrarCompraDesdeRemitos(data, usuario_id) {
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
 
     // 1. Validar remitos
-    const [remitos] = await connection.query(
-      `SELECT id FROM remitos_compra WHERE id IN (?)`,
-      [data.remitos_id]
-    );
-    if (remitos.length !== data.remitos_id.length) {
+    const remitosValidos = await validarRemitosCompra({
+      remitosId: data.remitos_id,
+    });
+
+    if (remitosValidos.length !== data.remitos_id.length) {
       throw ApiError.badRequest("Uno o más remitos no existen");
     }
 
@@ -236,24 +240,7 @@ export async function registrarCompraDesdeRemitos(data, usuario_id) {
     }
 
     // 2. Crear compra
-    const [result] = await connection.query(
-      `INSERT INTO compras (
-        proveedor_id, sucursal_id, tipo_comprobante_id,
-        punto_venta, numero_comprobante, total, observaciones,
-        estado_remito, mueve_stock, usuario_id
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, 'completo', 0, ?)`,
-      [
-        data.proveedor_id,
-        data.sucursal_id,
-        data.tipo_comprobante_id,
-        data.punto_venta,
-        data.numero_comprobante,
-        data.total,
-        data.observaciones ?? null,
-        usuario_id,
-      ]
-    );
-    const compra_id = result.insertId;
+    const compra_id = await crearCompraDesdeRemitos({ connection, data });
 
     // 3. Asociar remitos
     for (const remito_id of data.remitos_id) {
