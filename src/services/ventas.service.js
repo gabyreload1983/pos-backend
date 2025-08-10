@@ -13,7 +13,7 @@ import { registrarMovimientoCuentaCorriente } from "../models/cuentas_corrientes
 import { existeEnTabla, venderNumeroSerie } from "../utils/dbHelpers.js";
 import { registrarLog } from "../utils/logger.js";
 import { ApiError } from "../utils/ApiError.js";
-import { obtenerCotizacionDolarActiva } from "../models/cotizaciones_dolar.model.js";
+import { obtenerCotizacionActiva } from "../models/cotizacionesMonedas.model.js";
 import { pool } from "../config/db.js";
 import {
   ACCIONES_LOG,
@@ -36,7 +36,7 @@ export async function registrarVenta(data, usuario_id, sucursal_id) {
   const clienteExiste = await existeEnTabla("clientes", data.cliente_id);
   if (!clienteExiste) throw new ApiError("Cliente no válido", 400);
 
-  const cotizacionActiva = await obtenerCotizacionDolarActiva();
+  const cotizacionActiva = await obtenerCotizacionActiva();
   if (!cotizacionActiva)
     throw new ApiError("No hay cotización de dólar activa", 400);
 

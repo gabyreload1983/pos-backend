@@ -64,7 +64,7 @@ export async function procesarItemsVenta({
     }
 
     const cotizacion =
-      articulo.moneda_codigo === "USD" ? cotizacionActiva.valor : 1;
+      articulo.moneda_codigo === "USD" ? cotizacionActiva.valor : 1; //TODO: refactorizar a cotizaciones_monedas
     const subtotalARS = precio_unitario * item.cantidad * cotizacion;
 
     let porcentaje_iva = null;
@@ -90,7 +90,7 @@ export async function procesarItemsVenta({
       precio_unitario,
       moneda_id: articulo.moneda_id,
       tasa_cambio:
-        articulo.moneda_codigo === "USD" ? cotizacionActiva.valor : null,
+        articulo.moneda_codigo === "USD" ? cotizacionActiva.valor : null, //TODO: refactorizar a cotizaciones_monedas
       porcentaje_iva,
       monto_iva,
     });
