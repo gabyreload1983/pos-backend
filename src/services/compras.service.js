@@ -18,6 +18,7 @@ import {
   obtenerCompraPorId,
   obtenerCompras,
 } from "../models/compras.model.js";
+import { obtenerIdDetalleCompra } from "../models/detalleCompra.model.js";
 import { validarRemitosCompra } from "../models/remitos_compra.model.js";
 import {
   actualizarStock,
@@ -52,15 +53,15 @@ export async function registrarCompra(data, usuario_id) {
       );
     }
 
+    const itemsCompra = await procesarItemsCompra({
+      itemsBrutos: data.items,
+      tasaCambio: data.tasa_cambio,
+    });
+
     // 1. Crear cabecera
     const compra_id = await crearCompra(connection, {
       ...data,
       usuario_id,
-    });
-
-    const itemsCompra = await procesarItemsCompra({
-      itemsBrutos: data.items,
-      tasaCambio: data.tasa_cambio,
     });
 
     // 2. Detalle de artículos
@@ -86,27 +87,15 @@ export async function registrarCompra(data, usuario_id) {
           observaciones: `Compra ID ${compra_id}`,
         });
 
-        const requiereSerie = await tieneNroSerie(item.articulo_id);
-        if (requiereSerie) {
-          const series = item.series ?? [];
-          if (series.length !== item.cantidad) {
-            throw ApiError.validation([
-              {
-                campo: `series del artículo ${item.articulo_id}`,
-                mensaje: `Cantidad de series (${series.length}) no coincide con la cantidad comprada (${item.cantidad}) para el artículo ID ${item.articulo_id}`,
-              },
-            ]);
-          }
+        if (item.tiene_nro_serie) {
+          const series = item.series;
+          const detalleId = await obtenerIdDetalleCompra({
+            connection,
+            compra_id,
+            articulo_id: item.articulo_id,
+          });
 
-          // Obtener el ID del detalle_compra
-          const [[detalle]] = await connection.query(
-            `SELECT id FROM detalle_compra 
-       WHERE compra_id = ? AND articulo_id = ? 
-       ORDER BY id DESC LIMIT 1`,
-            [compra_id, item.articulo_id]
-          );
-
-          if (!detalle?.id) {
+          if (!detalleId) {
             throw new ApiError(
               `No se pudo obtener el detalle de compra para artículo ID ${item.articulo_id}`,
               500
@@ -122,11 +111,11 @@ export async function registrarCompra(data, usuario_id) {
             );
           }
 
-          await insertarDetalleCompraSeries(connection, detalle.id, series);
+          await insertarDetalleCompraSeries(connection, detalleId, series);
           await insertarNumerosSerie(
             connection,
             item.articulo_id,
-            item.series,
+            series,
             data.sucursal_id
           );
         }
