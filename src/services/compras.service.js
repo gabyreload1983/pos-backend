@@ -124,34 +124,36 @@ export async function registrarCompra(data, usuario_id) {
 
     // 4. Actualizar costo si corresponde
     if (data.actualizar_costo) {
-      const { costo: costo_anterior, precio_venta: precio_venta_anterior } =
-        await obtenerCostoYPrecioVenta(connection, item.articulo_id);
+      for (const item of itemsCompra) {
+        const { costo: costo_anterior, precio_venta: precio_venta_anterior } =
+          await obtenerCostoYPrecioVenta(connection, item.articulo_id);
 
-      await actualizarCostoArticulo(
-        connection,
-        item.articulo_id,
-        item.costo_unitario_moneda
-      );
-      await recalcularPrecioVenta(connection, item.articulo_id);
+        await actualizarCostoArticulo(
+          connection,
+          item.articulo_id,
+          item.costo_unitario_moneda
+        );
+        await recalcularPrecioVenta(connection, item.articulo_id);
 
-      const { costo: costo_nuevo, precio_venta: precio_nuevo } =
-        await obtenerCostoYPrecioVenta(connection, item.articulo_id);
+        const { costo: costo_nuevo, precio_venta: precio_nuevo } =
+          await obtenerCostoYPrecioVenta(connection, item.articulo_id);
 
-      await registrarLog({
-        usuario_id,
-        tabla: "articulos",
-        accion_id: ACCIONES_LOG.UPDATE,
-        descripcion: `Actualización de costo y precio_venta desde compra ID ${compra_id}`,
-        registro_id: item.articulo_id,
-        datos_anteriores: {
-          costo: costo_anterior,
-          precio_venta: precio_venta_anterior,
-        },
-        datos_nuevos: {
-          costo: costo_nuevo,
-          precio_venta: precio_nuevo,
-        },
-      });
+        await registrarLog({
+          usuario_id,
+          tabla: "articulos",
+          accion_id: ACCIONES_LOG.UPDATE,
+          descripcion: `Actualización de costo y precio_venta desde compra ID ${compra_id}`,
+          registro_id: item.articulo_id,
+          datos_anteriores: {
+            costo: costo_anterior,
+            precio_venta: precio_venta_anterior,
+          },
+          datos_nuevos: {
+            costo: costo_nuevo,
+            precio_venta: precio_nuevo,
+          },
+        });
+      }
     }
 
     // 4. Auditoría
