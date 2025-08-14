@@ -35,25 +35,13 @@ import {
   calcularTotalIva,
   calcularTotalNeto,
 } from "./helpers/totalesCompra.js";
-import { validarFkCompra } from "./helpers/validarFkCompra.js";
+import { validarDataCompra } from "./helpers/validacionCompra.js";
 
 export async function registrarCompra(data, usuario_id) {
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
-    await validarFkCompra({ data });
-
-    if (
-      await existeComprobanteProveedor(
-        data.proveedor_id,
-        data.punto_venta,
-        data.numero_comprobante
-      )
-    ) {
-      throw ApiError.conflict(
-        `Ya existe una compra con ese punto de venta y número de comprobante para este proveedor`
-      );
-    }
+    await validarDataCompra({ data });
 
     const itemsCompra = await procesarItemsCompra({
       itemsBrutos: data.items,

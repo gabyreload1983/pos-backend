@@ -1,7 +1,10 @@
 import { ApiError } from "../../utils/ApiError.js";
-import { existeEnTabla } from "../../utils/dbHelpers.js";
+import {
+  existeComprobanteProveedor,
+  existeEnTabla,
+} from "../../utils/dbHelpers.js";
 
-export async function validarFkCompra({ data }) {
+export async function validarDataCompra({ data }) {
   const errores = [];
 
   const proveedorOK = await existeEnTabla("proveedores", data.proveedor_id);
@@ -24,5 +27,17 @@ export async function validarFkCompra({ data }) {
 
   if (errores.length > 0) {
     throw ApiError.validation(errores);
+  }
+
+  if (
+    await existeComprobanteProveedor(
+      data.proveedor_id,
+      data.punto_venta,
+      data.numero_comprobante
+    )
+  ) {
+    throw ApiError.conflict(
+      `Ya existe una compra con ese punto de venta y número de comprobante para este proveedor`
+    );
   }
 }
