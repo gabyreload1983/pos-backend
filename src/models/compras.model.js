@@ -1,21 +1,28 @@
 import { pool } from "../config/db.js";
 import { ESTADOS_REMITO } from "../constants/index.js";
 
-export async function crearCompra(connection, data) {
+export async function crearCompra({
+  connection,
+  data,
+  usuario_id,
+  total_neto,
+  total_iva,
+}) {
   const [result] = await connection.query(
     `INSERT INTO compras (
-      usuario_id, proveedor_id, sucursal_id,
+      proveedor_id, usuario_id, sucursal_id,
       tipo_comprobante_id, punto_venta, numero_comprobante,
-      total, observaciones, mueve_stock, estado_remito_id
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      total_neto, total_iva, observaciones, mueve_stock, estado_remito_id
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
-      data.usuario_id,
       data.proveedor_id,
+      usuario_id,
       data.sucursal_id,
       data.tipo_comprobante_id,
-      data.punto_venta || null,
-      data.numero_comprobante || null,
-      data.total,
+      data.punto_venta,
+      data.numero_comprobante,
+      total_neto,
+      total_iva,
       data.observaciones || null,
       data.mueve_stock ? 1 : 0,
       data.mueve_stock ? ESTADOS_REMITO.COMPLETO : ESTADOS_REMITO.SIN_REMITIR,
@@ -46,18 +53,24 @@ export async function crearCompraDesdeRemitos({ connection, data }) {
   return result.insertId;
 }
 
-export async function insertarDetalleCompra(connection, compra_id, items) {
-  for (const item of items) {
+export async function insertarDetalleCompra({
+  connection,
+  compra_id,
+  itemsCompra,
+}) {
+  for (const item of itemsCompra) {
     await connection.query(
       `INSERT INTO detalle_compra (
         compra_id, articulo_id, cantidad,
-        costo_unitario, moneda_id, tasa_cambio
-      ) VALUES (?, ?, ?, ?, ?, ?)`,
+        costo_unitario_ars, porcentaje_iva, monto_iva, moneda_id, tasa_cambio
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         compra_id,
         item.articulo_id,
         item.cantidad,
-        item.costo_unitario,
+        item.costo_unitario_ars,
+        item.porcentaje_iva,
+        item.monto_iva,
         item.moneda_id,
         item.tasa_cambio || null,
       ]

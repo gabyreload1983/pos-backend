@@ -1,14 +1,12 @@
 import { pool } from "../config/db.js";
 import {
   ACCIONES_LOG,
-  MONEDAS,
   ORIGENES_MOVIMIENTOS_STOCK,
 } from "../constants/index.js";
 import {
   actualizarCostoArticulo,
   obtenerCostoYPrecioVenta,
   recalcularPrecioVenta,
-  tieneNroSerie,
 } from "../models/articulos.model.js";
 import {
   crearCompra,
@@ -33,6 +31,10 @@ import {
 } from "../utils/dbHelpers.js";
 import { registrarLog } from "../utils/logger.js";
 import { procesarItemsCompra } from "./helpers/procesarItemsCompra.js";
+import {
+  calcularTotalIva,
+  calcularTotalNeto,
+} from "./helpers/totalesCompra.js";
 import { validarFkCompra } from "./helpers/validarFkCompra.js";
 
 export async function registrarCompra(data, usuario_id) {
@@ -58,14 +60,24 @@ export async function registrarCompra(data, usuario_id) {
       tasaCambio: data.tasa_cambio,
     });
 
+    const total_neto = calcularTotalNeto({ itemsCompra });
+
+    const total_iva = calcularTotalIva({
+      itemsCompra,
+      tipoComprobanteId: data.tipo_comprobante_id,
+    });
+
     // 1. Crear cabecera
-    const compra_id = await crearCompra(connection, {
-      ...data,
+    const compra_id = await crearCompra({
+      connection,
+      data,
       usuario_id,
+      total_neto,
+      total_iva,
     });
 
     // 2. Detalle de artículos
-    await insertarDetalleCompra(connection, compra_id, itemsCompra);
+    await insertarDetalleCompra({ connection, compra_id, itemsCompra });
 
     // 3. Actualizar stock y registrar movimientos
 
@@ -127,7 +139,7 @@ export async function registrarCompra(data, usuario_id) {
           await actualizarCostoArticulo(
             connection,
             item.articulo_id,
-            item.costo_unitario
+            item.costo_unitario_moneda
           );
           await recalcularPrecioVenta(connection, item.articulo_id);
 

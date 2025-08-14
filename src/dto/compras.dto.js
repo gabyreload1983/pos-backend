@@ -13,7 +13,6 @@ export const createCompraSchema = z.object({
   tipo_comprobante_id: z.number().int().positive(),
   punto_venta: z.number().int(),
   numero_comprobante: z.number().int(),
-  total: z.number().positive(), //TODO calcular en el backend, que no venga del frontend
   observaciones: z.string().optional(),
   mueve_stock: z.union([z.literal(1), z.literal(0)]).default(1),
   actualizar_costo: z.union([z.literal(1), z.literal(0)]).default(1),
@@ -32,7 +31,6 @@ export const createCompraDesdeRemitosSchema = z.object({
   tipo_comprobante_id: z.number().int().positive(),
   punto_venta: z.number().int(),
   numero_comprobante: z.number().int(),
-  total: z.number().positive(), //TODO calcular en el backend, que no venga del frontend
   observaciones: z.string().optional(),
   remitos_id: z.array(z.number().int().positive()).min(1),
   actualizar_costo: z.union([z.literal(1), z.literal(0)]).default(1),

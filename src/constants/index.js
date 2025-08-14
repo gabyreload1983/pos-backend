@@ -7,5 +7,6 @@ export * from "./monedas.js";
 export * from "./motivos_movimientos_caja.js";
 export * from "./origenes_movimientos_stock.js";
 export * from "./tipos_ajuste.js";
+export * from "./tipos_comprobante.js";
 export * from "./tipos_movimiento_ctacte.js";
 export * from "./tipos_pago.js";
