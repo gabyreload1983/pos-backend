@@ -11,6 +11,7 @@ import {
 import {
   crearCompra,
   crearCompraDesdeRemitos,
+  insertarComprasIvaResumen,
   insertarDetalleCompra,
   insertarDetalleCompraSeries,
   obtenerCompraPorId,
@@ -32,6 +33,7 @@ import {
 import { registrarLog } from "../utils/logger.js";
 import { procesarItemsCompra } from "./helpers/procesarItemsCompra.js";
 import {
+  calcularResumenIvaPorAliquota,
   calcularTotalIva,
   calcularTotalNeto,
 } from "./helpers/totalesCompra.js";
@@ -66,6 +68,12 @@ export async function registrarCompra(data, usuario_id) {
 
     // 2. Detalle de artículos
     await insertarDetalleCompra({ connection, compra_id, itemsCompra });
+
+    const resumen = calcularResumenIvaPorAliquota({
+      itemsCompra,
+      tipoComprobanteId: data.tipo_comprobante_id,
+    });
+    await insertarComprasIvaResumen({ connection, compra_id, resumen });
 
     // 3. Actualizar stock y registrar movimientos
 

@@ -127,3 +127,21 @@ export async function obtenerCompraPorId(id) {
     items: detalle,
   };
 }
+
+export async function insertarComprasIvaResumen({
+  connection,
+  compra_id,
+  resumen,
+}) {
+  if (!resumen?.length) return;
+
+  const sql = `
+    INSERT INTO compras_iva_resumen (compra_id, iva_aliquota_id, neto, iva)
+    VALUES (?, ?, ?, ?)
+    ON DUPLICATE KEY UPDATE neto = VALUES(neto), iva = VALUES(iva)
+  `;
+
+  for (const r of resumen) {
+    await connection.query(sql, [compra_id, r.iva_aliquota_id, r.neto, r.iva]);
+  }
+}

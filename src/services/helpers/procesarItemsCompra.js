@@ -45,6 +45,7 @@ export async function procesarItemsCompra({ itemsBrutos, tasaCambio }) {
       monto_iva:
         (costo_unitario_ars * item.cantidad * articulo.porcentaje_iva) / 100,
       moneda_id: articulo.moneda_id,
+      iva_aliquota_id: articulo.iva_aliquota_id,
       tasa_cambio: tasaCambio,
       tiene_nro_serie: articulo.tiene_nro_serie,
       series: item.series ?? [],
