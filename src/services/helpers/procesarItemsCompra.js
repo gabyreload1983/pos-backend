@@ -30,14 +30,6 @@ export async function procesarItemsCompra({ itemsBrutos, tasaCambio }) {
 
     const necesitaCotizacion = articulo.moneda_id !== MONEDAS.ARS;
 
-    if (necesitaCotizacion && !tasaCambio) {
-      errores.push({
-        campo: "tasa_cambio",
-        mensaje: `Falta cotización para artículo ${item.articulo_id} en moneda ${articulo.moneda_id}`,
-      });
-      continue;
-    }
-
     const costo_unitario_ars = Number(item.costo_unitario);
 
     const costo_unitario_moneda = necesitaCotizacion
