@@ -2,7 +2,7 @@ import { TIPOS_COMPROBANTE } from "../../constants/index.js";
 
 export function calcularTotalNeto({ itemsCompra }) {
   return itemsCompra.reduce(
-    (acc, it) => acc + it.costo_unitario_ars * it.cantidad,
+    (acc, item) => acc + item.costo_unitario_ars * item.cantidad,
     0
   );
 }
@@ -14,7 +14,7 @@ export function calcularTotalIva({ itemsCompra, tipoComprobanteId }) {
     tipoComprobanteId === TIPOS_COMPROBANTE.FB ||
     tipoComprobanteId === TIPOS_COMPROBANTE.FC
   ) {
-    total_iva = itemsCompra.reduce((acc, it) => acc + (it.monto_iva || 0), 0);
+    total_iva = itemsCompra.reduce((acc, item) => acc + item.monto_iva, 0);
   }
 
   return total_iva;
