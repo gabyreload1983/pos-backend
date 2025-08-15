@@ -122,6 +122,8 @@ export async function obtenerCompraPorId(id) {
     [id]
   );
 
+  if (cabecera.length === 0) return null;
+
   const [detalle] = await pool.query(
     `SELECT d.*, a.nombre AS articulo
      FROM detalle_compra d

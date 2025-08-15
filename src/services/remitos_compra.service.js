@@ -8,6 +8,7 @@ import {
   vincularRemitoConCompra,
   obtenerPendientesCompra,
   actualizarEstadoRemitoCompra,
+  existeRemitoCompraDuplicado,
 } from "../models/remitos_compra.model.js";
 import {
   actualizarStock,
@@ -30,6 +31,12 @@ export async function registrarRemitoCompra(data, usuario_id) {
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
+    if (!data.punto_venta || !data.numero_comprobante) {
+      throw ApiError.validation([
+        { campo: "punto_venta", mensaje: "Requerido" },
+        { campo: "numero_comprobante", mensaje: "Requerido" },
+      ]);
+    }
 
     if (data.compra_id) {
       const compra = await obtenerCompraPorId(data.compra_id);
@@ -38,6 +45,17 @@ export async function registrarRemitoCompra(data, usuario_id) {
       }
       if (compra.mueve_stock === 1) {
         throw ApiError.badRequest("La compra ya movió stock");
+      }
+
+      const duplicado = await existeRemitoCompraDuplicado(connection, {
+        proveedor_id: compra.proveedor_id,
+        punto_venta: data.punto_venta,
+        numero_comprobante: data.numero_comprobante,
+      });
+      if (duplicado) {
+        throw ApiError.conflict(
+          "Ya existe un remito para este proveedor con ese punto de venta y número"
+        );
       }
 
       const pendientes = await obtenerPendientesCompra(
@@ -176,6 +194,10 @@ export async function registrarRemitoCompra(data, usuario_id) {
     if (!data.compra_id) {
       const errores = [];
 
+      if (!data.proveedor_id) {
+        errores.push({ campo: "proveedor_id", mensaje: "Requerido" });
+      }
+
       for (const item of data.items) {
         if (!item.articulo_id) {
           errores.push({
@@ -201,10 +223,20 @@ export async function registrarRemitoCompra(data, usuario_id) {
         throw ApiError.validation(errores);
       }
 
+      const dupLibre = await existeRemitoCompraDuplicado(connection, {
+        proveedor_id: data.proveedor_id,
+        punto_venta: data.punto_venta,
+        numero_comprobante: data.numero_comprobante,
+      });
+      if (dupLibre) {
+        throw ApiError.conflict(
+          "Ya existe un remito para este proveedor con ese punto de venta y número"
+        );
+      }
+
       const remito_id = await crearRemitoCompra(connection, {
         ...data,
         usuario_id,
-        proveedor_id: null,
       });
 
       for (const item of data.items) {

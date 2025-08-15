@@ -5,14 +5,16 @@ import { pool } from "../config/db.js";
 export async function crearRemitoCompra(connection, data) {
   const [result] = await connection.query(
     `INSERT INTO remitos_compra (
-      proveedor_id, usuario_id, sucursal_id, fecha, observaciones, total
-    ) VALUES (?, ?, ?, NOW(), ?, ?)`,
+      proveedor_id, usuario_id, sucursal_id, punto_venta, numero_comprobante, fecha, observaciones, total
+    ) VALUES (?, ?, ?, ?, ?, NOW(), ?, ?)`,
     [
-      data.proveedor_id || null,
+      data.proveedor_id,
       data.usuario_id,
       data.sucursal_id,
-      data.observaciones || null,
-      data.total || 0,
+      data.punto_venta,
+      data.numero_comprobante,
+      data.observaciones ?? null,
+      data.total ?? 0,
     ]
   );
   return result.insertId;
@@ -101,4 +103,18 @@ export async function validarRemitosCompra({ connection, remitosId }) {
   );
 
   return remitos || null;
+}
+
+export async function existeRemitoCompraDuplicado(
+  connection,
+  { proveedor_id, punto_venta, numero_comprobante }
+) {
+  const [rows] = await connection.query(
+    `SELECT 1
+     FROM remitos_compra
+     WHERE proveedor_id = ? AND punto_venta = ? AND numero_comprobante = ?
+     LIMIT 1`,
+    [proveedor_id, punto_venta, numero_comprobante]
+  );
+  return rows.length > 0;
 }
