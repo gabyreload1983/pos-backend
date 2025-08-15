@@ -48,7 +48,7 @@ export async function insertarRemitoSeries(
 ) {
   const values = series.map((serie) => [detalle_remito_id, serie]);
   await connection.query(
-    `INSERT INTO detalle_remito_series (detalle_remito_id, nro_serie) VALUES ?`,
+    `INSERT INTO detalle_remito_compra_series (detalle_remito_id, nro_serie) VALUES ?`,
     [values]
   );
 }

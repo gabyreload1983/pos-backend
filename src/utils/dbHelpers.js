@@ -27,7 +27,7 @@ export async function existenSeriesDuplicadas(series = []) {
     SELECT nro_serie FROM (
       SELECT nro_serie FROM detalle_compra_series
       UNION
-      SELECT nro_serie FROM detalle_remito_series
+      SELECT nro_serie FROM detalle_remito_compra_series
     ) AS all_series
     WHERE nro_serie IN (?)
     `,
