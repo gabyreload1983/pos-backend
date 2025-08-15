@@ -2,7 +2,6 @@ import { z } from "zod";
 
 export const itemRemitoCompraSchema = z.object({
   articulo_id: z.number().int().positive().optional(),
-  detalle_compra_id: z.number().int().positive().optional(),
   cantidad: z.number().int().min(1),
   series: z.array(z.string().min(1)).optional(),
 });

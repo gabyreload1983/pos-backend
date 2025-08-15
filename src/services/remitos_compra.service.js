@@ -46,14 +46,14 @@ export async function registrarRemitoCompra(data, usuario_id) {
       );
       const errores = [];
       const pendientesMap = new Map();
-      pendientes.forEach((p) => pendientesMap.set(p.detalle_compra_id, p));
+      pendientes.forEach((p) => pendientesMap.set(p.articulo_id, p));
       const itemsConArticulo = [];
 
       for (const item of data.items) {
-        const detalle = pendientesMap.get(item.detalle_compra_id);
+        const detalle = pendientesMap.get(item.articulo_id);
         if (!detalle) {
           errores.push({
-            campo: `detalle_compra_id ${item.detalle_compra_id}`,
+            campo: `articulo_id ${item.articulo_id}`,
             mensaje: "No pertenece a esta compra",
           });
           continue;
@@ -68,7 +68,7 @@ export async function registrarRemitoCompra(data, usuario_id) {
         }
 
         itemsConArticulo.push({
-          detalle_compra_id: item.detalle_compra_id,
+          detalle_compra_id: detalle.detalle_compra_id,
           articulo_id: detalle.articulo_id,
           cantidad: item.cantidad,
           series: item.series ?? [],

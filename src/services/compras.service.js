@@ -9,6 +9,7 @@ import {
   recalcularPrecioVenta,
 } from "../models/articulos.model.js";
 import {
+  asociarRemitosACompra,
   crearCompra,
   crearCompraDesdeRemitos,
   insertarComprasIvaResumen,
@@ -32,6 +33,7 @@ import {
 } from "../utils/dbHelpers.js";
 import { registrarLog } from "../utils/logger.js";
 import { procesarItemsCompra } from "./helpers/procesarItemsCompra.js";
+import { procesarItemsCompraDesdeRemitos } from "./helpers/procesarItemsCompraDesdeRemito.js";
 import {
   calcularResumenIvaPorAliquota,
   calcularTotalIva,
@@ -48,6 +50,7 @@ export async function registrarCompra(data, usuario_id) {
     const itemsCompra = await procesarItemsCompra({
       itemsBrutos: data.items,
       tasaCambio: data.tasa_cambio,
+      mueveStock: data.mueve_stock,
     });
 
     const total_neto = calcularTotalNeto({ itemsCompra });
@@ -193,6 +196,7 @@ export async function registrarCompraDesdeRemitos(data, usuario_id) {
 
     // 1. Validar remitos
     const remitosValidos = await validarRemitosCompra({
+      connection,
       remitosId: data.remitos_id,
     });
 
@@ -212,90 +216,70 @@ export async function registrarCompraDesdeRemitos(data, usuario_id) {
       );
     }
 
+    const itemsCompra = await procesarItemsCompraDesdeRemitos({
+      connection,
+      data,
+      itemsBrutos: data.items,
+      tasaCambio: data.tasa_cambio,
+    });
+
+    const total_neto = calcularTotalNeto({ itemsCompra });
+    const total_iva = calcularTotalIva({
+      itemsCompra,
+      tipoComprobanteId: data.tipo_comprobante_id,
+    });
+
     // 2. Crear compra
-    const compra_id = await crearCompraDesdeRemitos({ connection, data });
+    const compra_id = await crearCompraDesdeRemitos({
+      connection,
+      data,
+      usuario_id,
+      total_neto,
+      total_iva,
+    });
 
-    // 3. Asociar remitos
-    for (const remito_id of data.remitos_id) {
-      await connection.query(
-        `INSERT INTO remito_factura_compra (remito_id, compra_id) VALUES (?, ?)`,
-        [remito_id, compra_id]
-      );
-    }
+    await insertarDetalleCompra({ connection, compra_id, itemsCompra });
 
-    // 4. Obtener cantidades remitidas por artículo
-    const [cantidades] = await connection.query(
-      `SELECT articulo_id, SUM(cantidad) AS cantidad
-       FROM detalle_remito_compra
-       WHERE remito_id IN (?)
-       GROUP BY articulo_id`,
-      [data.remitos_id]
-    );
-    const cantidadesMap = new Map();
-    cantidades.forEach((row) =>
-      cantidadesMap.set(row.articulo_id, Number(row.cantidad))
-    );
+    const resumen = calcularResumenIvaPorAliquota({
+      itemsCompra,
+      tipoComprobanteId: data.tipo_comprobante_id,
+    });
+    await insertarComprasIvaResumen({ connection, compra_id, resumen });
 
-    // 5. Insertar ítems en detalle_compra
-    for (const item of data.items) {
-      const cantidad = cantidadesMap.get(item.articulo_id);
-      if (!cantidad) {
-        throw ApiError.badRequest(
-          `No se encontró cantidad remitida para artículo ID ${item.articulo_id}`
-        );
-      }
+    await asociarRemitosACompra({
+      connection,
+      compra_id,
+      remitos_id: data.remitos_id,
+    });
 
-      // Obtener moneda_id del artículo
-      const [rows] = await connection.query(
-        `SELECT moneda_id FROM articulos WHERE id = ?`,
-        [item.articulo_id]
-      );
-      const moneda_id = rows[0]?.moneda_id;
-      if (!moneda_id) {
-        throw ApiError.badRequest(
-          `Artículo ID ${item.articulo_id} no tiene moneda asignada`
-        );
-      }
-
-      await connection.query(
-        `INSERT INTO detalle_compra (
-          compra_id, articulo_id, cantidad, costo_unitario,
-          moneda_id, tasa_cambio
-        ) VALUES (?, ?, ?, ?, ?, ?)`,
-        [
-          compra_id,
-          item.articulo_id,
-          cantidad,
-          item.costo_unitario,
-          moneda_id,
-          item.tasa_cambio ?? null,
-        ]
-      );
-
-      if (data.actualizar_costo) {
-        const { costo_anterior, precio_venta_anterior } =
-          await obtenerCostoYPrecioVenta(item.articulo_id);
+    if (data.actualizar_costo) {
+      for (const item of itemsCompra) {
+        const { costo: costo_anterior, precio_venta: precio_venta_anterior } =
+          await obtenerCostoYPrecioVenta(connection, item.articulo_id);
 
         await actualizarCostoArticulo(
           connection,
           item.articulo_id,
-          item.costo_unitario
+          item.costo_unitario_moneda
         );
         await recalcularPrecioVenta(connection, item.articulo_id);
+
+        const { costo: costo_nuevo, precio_venta: precio_nuevo } =
+          await obtenerCostoYPrecioVenta(connection, item.articulo_id);
 
         await registrarLog({
           usuario_id,
           tabla: "articulos",
           accion_id: ACCIONES_LOG.UPDATE,
-          descripcion: `Actualización de costo y precio_venta desde compra ID ${compra_id}`,
+          descripcion: `Actualización de costo y precio_venta desde compra (remitos) ID ${compra_id}`,
           registro_id: item.articulo_id,
           datos_anteriores: {
             costo: costo_anterior,
             precio_venta: precio_venta_anterior,
           },
           datos_nuevos: {
-            costo: item.costo_unitario,
-            precio_venta: nuevo_precio_venta,
+            costo: costo_nuevo,
+            precio_venta: precio_nuevo,
           },
         });
       }

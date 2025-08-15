@@ -31,23 +31,31 @@ export async function crearCompra({
   return result.insertId;
 }
 
-export async function crearCompraDesdeRemitos({ connection, data }) {
+export async function crearCompraDesdeRemitos({
+  connection,
+  data,
+  usuario_id,
+  total_neto,
+  total_iva,
+}) {
   const [result] = await connection.query(
     `INSERT INTO compras (
-        usuario_id, proveedor_id, sucursal_id, tipo_comprobante_id,
-        punto_venta, numero_comprobante, total, observaciones,
-        estado_remito, mueve_stock, usuario_id
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, 'completo', 0, ?)`,
+      proveedor_id, usuario_id, sucursal_id,
+      tipo_comprobante_id, punto_venta, numero_comprobante,
+      total_neto, total_iva, observaciones, mueve_stock, estado_remito_id
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
-      data.usuario_id,
       data.proveedor_id,
+      usuario_id,
       data.sucursal_id,
       data.tipo_comprobante_id,
       data.punto_venta,
       data.numero_comprobante,
-      data.total,
-      data.observaciones ?? null,
-      usuario_id,
+      total_neto,
+      total_iva,
+      data.observaciones || null,
+      0,
+      ESTADOS_REMITO.COMPLETO,
     ]
   );
   return result.insertId;
@@ -144,4 +152,31 @@ export async function insertarComprasIvaResumen({
   for (const r of resumen) {
     await connection.query(sql, [compra_id, r.iva_aliquota_id, r.neto, r.iva]);
   }
+}
+
+export async function asociarRemitosACompra({
+  connection,
+  compra_id,
+  remitos_id,
+}) {
+  if (!remitos_id?.length) return;
+  const values = remitos_id.map((r) => [r, compra_id]);
+  await connection.query(
+    `INSERT INTO remito_factura_compra (remito_id, compra_id) VALUES ?`,
+    [values]
+  );
+}
+
+export async function obtenerCantidadesRemitadasPorArticulo({
+  connection,
+  remitos_id,
+}) {
+  const [rows] = await connection.query(
+    `SELECT articulo_id, SUM(cantidad) AS cantidad
+     FROM detalle_remito_compra
+     WHERE remito_id IN (?)
+     GROUP BY articulo_id`,
+    [remitos_id]
+  );
+  return rows;
 }

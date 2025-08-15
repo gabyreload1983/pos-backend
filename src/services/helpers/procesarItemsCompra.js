@@ -2,7 +2,11 @@ import { MONEDAS } from "../../constants/index.js";
 import { obtenerArticulo } from "../../models/articulos.model.js";
 import { ApiError } from "../../utils/ApiError.js";
 
-export async function procesarItemsCompra({ itemsBrutos, tasaCambio }) {
+export async function procesarItemsCompra({
+  itemsBrutos,
+  tasaCambio,
+  mueveStock,
+}) {
   const errores = [];
   const itemsCompra = [];
 
@@ -17,7 +21,7 @@ export async function procesarItemsCompra({ itemsBrutos, tasaCambio }) {
       continue;
     }
 
-    if (articulo.tiene_nro_serie) {
+    if (mueveStock && articulo.tiene_nro_serie) {
       const series = item.series ?? [];
       if (series.length !== item.cantidad) {
         errores.push({
