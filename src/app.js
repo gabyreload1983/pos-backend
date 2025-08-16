@@ -38,11 +38,14 @@ app.use(express.json());
 app.use("/api/users", userRoutes);
 app.use("/api/clientes", clienteRoutes);
 app.use("/api/proveedores", proveedoresRoutes);
+app.use("/api/articulos", articulosRoutes);
+
 app.use("/api/compras", comprasRoutes);
 app.use("/api/remitos-compra", remitosCompraRoutes);
-app.use("/api/stock", stockRoutes);
-app.use("/api/articulos", articulosRoutes);
+
 app.use("/api/ventas", ventasRoutes);
+
+app.use("/api/stock", stockRoutes);
 app.use("/api/cotizaciones-monedas", cotizacionesMonedasRoutes);
 app.use("/api/cuentas-corrientes", cuentas_corrientesRoutes);
 app.use("/api/pagos", pagosRoutes);
