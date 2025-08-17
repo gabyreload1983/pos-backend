@@ -1,3 +1,4 @@
+// dto/ventaSchema.js
 import { z } from "zod";
 import { TIPOS_AJUSTE } from "../constants/index.js";
 
@@ -7,7 +8,7 @@ const itemSchema = z
   .object({
     articulo_id: z.number().int().positive(),
     cantidad: z.number().int().positive(),
-    precio_base: z.number().positive(),
+    precio_base: z.number().positive().optional(),
     tipo_ajuste_id: z
       .number()
       .int()
@@ -44,35 +45,70 @@ const itemSchema = z
         });
       }
     }
+
+    // Reglas por tipo_ajuste_id
+    switch (item.tipo_ajuste_id) {
+      case TIPOS_AJUSTE.NINGUNO:
+        if (item.porcentaje_ajuste !== 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["porcentaje_ajuste"],
+            message: "Con ajuste NINGUNO, el porcentaje debe ser 0",
+          });
+        }
+        break;
+
+      case TIPOS_AJUSTE.DESCUENTO:
+      case TIPOS_AJUSTE.RECARGO:
+        if (item.porcentaje_ajuste === 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["porcentaje_ajuste"],
+            message: "Debe indicar un porcentaje mayor a 0",
+          });
+        }
+        break;
+
+      case TIPOS_AJUSTE.MANUAL:
+        if (item.precio_base == null) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["precio_base"],
+            message: "En modo MANUAL, precio_base es obligatorio",
+          });
+        }
+        if (item.porcentaje_ajuste !== 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["porcentaje_ajuste"],
+            message: "En modo MANUAL, porcentaje_ajuste debe ser 0",
+          });
+        }
+        break;
+    }
   });
 
 export const ventaSchema = z
   .object({
     cliente_id: z.number().int().positive(),
-
     tipo_pago_id: z
       .number()
       .int()
       .positive("Debe seleccionar un tipo de pago válido"),
-
     tipo_comprobante_id: z
       .number()
       .int()
       .positive("Debe seleccionar un tipo de comprobante válido")
       .optional()
       .nullable(),
-
     punto_venta: z
       .number()
       .int()
       .positive("Debe seleccionar un punto de venta válido")
       .optional()
       .nullable(),
-
     observaciones: z.string().max(1000).optional().nullable(),
-
     cotizacion_usada_id: z.number().int().positive(),
-
     items: z
       .array(itemSchema)
       .min(1, { message: "Debe haber al menos un ítem en la venta" }),

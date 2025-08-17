@@ -3,17 +3,21 @@ import { obtenerArticulo } from "../../models/articulos.model.js";
 import { obtenerStockArticuloSucursal } from "../../models/stock.model.js";
 import { calcularPrecioUnitario } from "../../utils/calcularPrecioVenta.js";
 import { obtenerEstadoSerie } from "../../utils/dbHelpers.js";
-import { ESTADOS_NUMEROS_SERIE } from "../../constants/index.js";
+import {
+  ESTADOS_NUMEROS_SERIE,
+  MONEDAS,
+  TIPOS_AJUSTE,
+} from "../../constants/index.js";
+
+const r2 = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
 
 export async function procesarItemsVenta({
   items,
   sucursal_id,
   cotizacionActiva,
-  requiere_afip = false,
 }) {
-  const procesados = [];
-  let total = 0;
-  let total_iva = 0;
+  const itemsProcesados = [];
+  const cotizacion = cotizacionActiva.valor;
 
   for (const item of items) {
     const articulo = await obtenerArticulo(item.articulo_id);
@@ -36,6 +40,12 @@ export async function procesarItemsVenta({
     }
 
     if (articulo.tiene_nro_serie) {
+      if (!Array.isArray(item.series) || item.series.length !== item.cantidad) {
+        throw new ApiError(
+          `Debés informar ${item.cantidad} series para ${articulo.nombre}`,
+          400
+        );
+      }
       for (const serie of item?.series) {
         const result = await obtenerEstadoSerie(
           item.articulo_id,
@@ -50,55 +60,59 @@ export async function procesarItemsVenta({
       }
     }
 
-    const precio_unitario = calcularPrecioUnitario(
-      item.precio_base,
-      item.tipo_ajuste_id,
-      item.porcentaje_ajuste ?? 0
-    );
+    let precio_final_ars;
 
-    if (precio_unitario < Number(articulo.costo)) {
+    if (item.tipo_ajuste_id === TIPOS_AJUSTE.MANUAL)
+      precio_final_ars = Number(item.precio_base);
+
+    if (item.tipo_ajuste_id !== TIPOS_AJUSTE.MANUAL) {
+      let precio_calculado = calcularPrecioUnitario(
+        Number(articulo.precio_venta),
+        item.tipo_ajuste_id,
+        item.porcentaje_ajuste || 0
+      );
+
+      if (articulo.moneda_id !== MONEDAS.ARS)
+        precio_final_ars = precio_calculado * Number(cotizacion);
+
+      if (articulo.moneda_id === MONEDAS.ARS)
+        precio_final_ars = precio_calculado;
+    }
+
+    let precio_final_moneda =
+      articulo.moneda_id === MONEDAS.ARS
+        ? precio_final_ars
+        : precio_final_ars / Number(cotizacion);
+
+    if (precio_final_moneda < Number(articulo.costo)) {
       throw new ApiError(
-        `El precio final ($${precio_unitario}) es menor al costo ($${articulo.costo}) para ${articulo.nombre}`,
+        `El precio final ($${precio_final_moneda}) es menor al costo ($${articulo.costo}) para ${articulo.nombre}`,
         400
       );
     }
 
-    const cotizacion =
-      articulo.moneda_codigo === "USD" ? cotizacionActiva.valor : 1; //TODO: refactorizar a cotizaciones_monedas
-    const subtotalARS = precio_unitario * item.cantidad * cotizacion;
+    const neto_ars = r2(precio_final_ars * item.cantidad);
+    const porcentaje_iva =
+      articulo.porcentaje_iva != null ? Number(articulo.porcentaje_iva) : null;
+    const iva_ars =
+      porcentaje_iva != null ? r2(neto_ars * (porcentaje_iva / 100)) : 0;
 
-    let porcentaje_iva = null;
-    let monto_iva = null;
-
-    if (requiere_afip && articulo.porcentaje_iva != null) {
-      porcentaje_iva = parseFloat(articulo.porcentaje_iva);
-      const monto_iva_unitario = precio_unitario * (porcentaje_iva / 100);
-      monto_iva = parseFloat((monto_iva_unitario * item.cantidad).toFixed(2));
-      total_iva += monto_iva;
-    }
-
-    total += subtotalARS;
-
-    procesados.push({
-      articulo_id: item.articulo_id,
-      descripcion: articulo.nombre,
+    itemsProcesados.push({
+      articulo_id: articulo.id,
       cantidad: item.cantidad,
-      series: item?.series || [],
-      precio_base: item.precio_base,
+      precio_final_moneda,
+      precio_final_ars,
       tipo_ajuste_id: item.tipo_ajuste_id,
-      porcentaje_ajuste: item.porcentaje_ajuste ?? 0,
-      precio_unitario,
+      porcentaje_ajuste: item.porcentaje_ajuste || 0,
       moneda_id: articulo.moneda_id,
-      tasa_cambio:
-        articulo.moneda_codigo === "USD" ? cotizacionActiva.valor : null, //TODO: refactorizar a cotizaciones_monedas
+      tasa_cambio: articulo.moneda_id !== MONEDAS.ARS ? Number(cotizacion) : 1,
       porcentaje_iva,
-      monto_iva,
+      iva_ars,
+      neto_ars,
     });
   }
 
   return {
-    itemsProcesados: procesados,
-    total: parseFloat(total.toFixed(2)),
-    total_iva: parseFloat(total_iva.toFixed(2)),
+    itemsProcesados,
   };
 }

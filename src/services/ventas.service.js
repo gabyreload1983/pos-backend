@@ -25,6 +25,10 @@ import {
 import { procesarItemsVenta } from "./helpers/procesarItemsVenta.js";
 import { emitirFacturaAFIP } from "./afip.service.js";
 import { crearComprobanteElectronico } from "../models/comprobantes_electronicos.model.js";
+import {
+  calcularTotalIvaVenta,
+  calcularTotalNetoVenta,
+} from "./helpers/totalesVenta.js";
 
 export async function registrarVenta(data, usuario_id, sucursal_id) {
   const caja = await obtenerCajaAbierta(sucursal_id);
@@ -38,7 +42,7 @@ export async function registrarVenta(data, usuario_id, sucursal_id) {
 
   const cotizacionActiva = await obtenerCotizacionActiva();
   if (!cotizacionActiva)
-    throw new ApiError("No hay cotización de dólar activa", 400);
+    throw new ApiError("No hay cotización de moneda activa", 400);
 
   if (
     data.cotizacion_usada_id &&
@@ -50,14 +54,14 @@ export async function registrarVenta(data, usuario_id, sucursal_id) {
     );
   }
 
-  const requiereAfip = Boolean(data.tipo_comprobante_id);
-
-  const { itemsProcesados, total, total_iva } = await procesarItemsVenta({
+  const { itemsProcesados } = await procesarItemsVenta({
     items: data.items,
     sucursal_id,
     cotizacionActiva,
-    requiere_afip: requiereAfip,
   });
+
+  const total = calcularTotalNetoVenta({ itemsProcesados });
+  const total_iva = calcularTotalIvaVenta({ itemsProcesados });
 
   const connection = await pool.getConnection();
   try {
