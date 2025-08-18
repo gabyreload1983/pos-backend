@@ -84,37 +84,7 @@ export async function registrarVenta(data, usuario_id, sucursal_id) {
       connection,
       venta_id,
       items: itemsProcesados,
-      requiere_afip: requiereAfip,
     });
-
-    if (requiereAfip) {
-      let afipResp;
-      try {
-        afipResp = await emitirFacturaAFIP({
-          ventaId: venta_id,
-          tipoComprobanteId: data.tipo_comprobante_id,
-          puntoVenta: data.punto_venta,
-          total,
-          total_iva,
-          items: itemsProcesados,
-        });
-      } catch (afipError) {
-        throw new ApiError(
-          `Error al emitir comprobante en AFIP: ${afipError.message}`,
-          502
-        );
-      }
-      await crearComprobanteElectronico(connection, {
-        ventaId: venta_id,
-        tipoComprobanteId: data.tipo_comprobante_id,
-        puntoVenta: data.punto_venta,
-        numeroComprobante: afipResp.numeroComprobante,
-        cae: afipResp.cae,
-        caeVencimiento: afipResp.caeVencimiento,
-        afipEstadoId: afipResp.afipEstadoId,
-        afipResponse: JSON.stringify(afipResp.raw),
-      });
-    }
 
     for (const item of itemsProcesados) {
       const articulo = await obtenerArticulo(item.articulo_id);
@@ -135,26 +105,6 @@ export async function registrarVenta(data, usuario_id, sucursal_id) {
           await venderNumeroSerie(item.articulo_id, serie, sucursal_id);
         }
       }
-    }
-
-    if (data.tipo_pago_id !== TIPOS_PAGO.CUENTA_CORRIENTE) {
-      await registrarMovimientoCaja({
-        caja_id: caja.id,
-        tipo_movimiento: "ingreso",
-        motivo_id: MOTIVOS_MOVIMIENTOS_CAJA.VENTA,
-        descripcion: `Venta ID ${venta_id}`,
-        monto: total,
-      });
-    }
-
-    if (data.tipo_pago_id === TIPOS_PAGO.CUENTA_CORRIENTE) {
-      await registrarMovimientoCuentaCorriente({
-        cliente_id: data.cliente_id,
-        venta_id,
-        tipo_movimiento_id: TIPOS_MOVIMIENTO_CTACTE.VENTA,
-        descripcion: `Venta ID ${venta_id}`,
-        monto: total,
-      });
     }
 
     await registrarLog({

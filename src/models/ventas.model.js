@@ -26,46 +26,31 @@ export async function crearVenta({ connection, ventaData }) {
   return ventaResult.insertId;
 }
 
-export async function crearDetalleVenta({
-  connection,
-  venta_id,
-  items,
-  requiere_afip = false,
-}) {
-  const detalles = items.map((i) => {
-    const porcentaje_iva = requiere_afip ? i.porcentaje_iva : null;
-    const monto_iva = requiere_afip ? i.monto_iva : null;
-
-    return [
-      venta_id,
-      i.articulo_id,
-      i.cantidad,
-      i.precio_base,
-      i.tipo_ajuste_id || 1,
-      i.porcentaje_ajuste || 0.0,
-      i.precio_unitario,
-      i.moneda_id,
-      i.tasa_cambio,
-      porcentaje_iva,
-      monto_iva,
-    ];
-  });
+export async function crearDetalleVenta({ connection, venta_id, items }) {
+  const rows = items.map((i) => [
+    venta_id,
+    i.articulo_id,
+    i.cantidad,
+    Number(i.precio_final_ars),
+    i.precio_final_moneda ?? null,
+    i.precio_base_moneda ?? null,
+    i.tipo_ajuste_id || 1,
+    Number(i.porcentaje_ajuste || 0),
+    i.moneda_id,
+    i.tasa_cambio ?? null,
+    i.porcentaje_iva ?? null,
+    Number(i.iva_ars || 0),
+  ]);
 
   await connection.query(
     `INSERT INTO detalle_venta (
-       venta_id,
-       articulo_id,
-       cantidad,
-       precio_base,
-       tipo_ajuste_id,
-       porcentaje_ajuste,
-       precio_unitario,
-       moneda_id,
-       tasa_cambio,
-       porcentaje_iva,
-       monto_iva
+       venta_id, articulo_id, cantidad,
+       precio_unitario_ars,
+       precio_unitario_moneda, precio_base_moneda, tipo_ajuste_id, porcentaje_ajuste,
+       moneda_id, tasa_cambio,
+       porcentaje_iva, monto_iva
      ) VALUES ?`,
-    [detalles]
+    [rows]
   );
 }
 
