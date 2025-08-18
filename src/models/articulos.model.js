@@ -11,6 +11,7 @@ export async function obtenerArticulo(articulo_id) {
         a.id,
         a.nombre,
         a.costo,
+        a.precio_venta,
         a.controla_stock,
         a.moneda_id,
         a.tiene_nro_serie,
