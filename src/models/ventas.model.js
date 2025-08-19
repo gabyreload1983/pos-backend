@@ -27,21 +27,6 @@ export async function crearVenta({ connection, ventaData }) {
 }
 
 export async function crearDetalleVenta({ connection, venta_id, items }) {
-  const rows = items.map((i) => [
-    venta_id,
-    i.articulo_id,
-    i.cantidad,
-    Number(i.precio_final_ars),
-    i.precio_final_moneda ?? null,
-    i.precio_base_moneda ?? null,
-    i.tipo_ajuste_id || 1,
-    Number(i.porcentaje_ajuste || 0),
-    i.moneda_id,
-    i.tasa_cambio ?? null,
-    i.porcentaje_iva ?? null,
-    Number(i.iva_ars || 0),
-  ]);
-
   await connection.query(
     `INSERT INTO detalle_venta (
        venta_id, articulo_id, cantidad,
@@ -50,7 +35,22 @@ export async function crearDetalleVenta({ connection, venta_id, items }) {
        moneda_id, tasa_cambio,
        porcentaje_iva, monto_iva
      ) VALUES ?`,
-    [rows]
+    [
+      items.map((i) => [
+        venta_id,
+        i.articulo_id,
+        i.cantidad,
+        i.precio_unitario_ars,
+        i.precio_unitario_moneda,
+        i.precio_base_moneda,
+        i.tipo_ajuste_id,
+        i.porcentaje_ajuste,
+        i.moneda_id,
+        i.tasa_cambio,
+        i.porcentaje_iva,
+        i.monto_iva,
+      ]),
+    ]
   );
 }
 

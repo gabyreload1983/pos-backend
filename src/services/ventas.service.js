@@ -8,8 +8,6 @@ import { obtenerCajaAbierta } from "../models/cajas.model.js";
 import { obtenerArticulo } from "../models/articulos.model.js";
 import { descontarStock } from "../models/stock.model.js";
 import { registrarMovimientoStock } from "../models/movimientos_stock.model.js";
-import { registrarMovimientoCaja } from "../models/movimientos_caja.model.js";
-import { registrarMovimientoCuentaCorriente } from "../models/cuentas_corrientes.model.js";
 import { existeEnTabla, venderNumeroSerie } from "../utils/dbHelpers.js";
 import { registrarLog } from "../utils/logger.js";
 import { ApiError } from "../utils/ApiError.js";
@@ -17,14 +15,9 @@ import { obtenerCotizacionActiva } from "../models/cotizacionesMonedas.model.js"
 import { pool } from "../config/db.js";
 import {
   ACCIONES_LOG,
-  TIPOS_PAGO,
-  MOTIVOS_MOVIMIENTOS_CAJA,
-  TIPOS_MOVIMIENTO_CTACTE,
   ORIGENES_MOVIMIENTOS_STOCK,
 } from "../constants/index.js";
 import { procesarItemsVenta } from "./helpers/procesarItemsVenta.js";
-import { emitirFacturaAFIP } from "./afip.service.js";
-import { crearComprobanteElectronico } from "../models/comprobantes_electronicos.model.js";
 import {
   calcularTotalIvaVenta,
   calcularTotalNetoVenta,

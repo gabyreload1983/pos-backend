@@ -17,7 +17,7 @@ export async function procesarItemsVenta({
   cotizacionActiva,
 }) {
   const itemsProcesados = [];
-  const cotizacion = cotizacionActiva.valor;
+  const cotizacion = Number(cotizacionActiva?.valor ?? 0);
 
   for (const item of items) {
     const articulo = await obtenerArticulo(item.articulo_id);
@@ -60,55 +60,106 @@ export async function procesarItemsVenta({
       }
     }
 
-    let precio_final_ars;
-
-    if (item.tipo_ajuste_id === TIPOS_AJUSTE.MANUAL)
-      precio_final_ars = Number(item.precio_base);
-
-    if (item.tipo_ajuste_id !== TIPOS_AJUSTE.MANUAL) {
-      let precio_calculado = calcularPrecioUnitario(
-        Number(articulo.precio_venta),
-        item.tipo_ajuste_id,
-        item.porcentaje_ajuste || 0
-      );
-
-      if (articulo.moneda_id !== MONEDAS.ARS)
-        precio_final_ars = precio_calculado * Number(cotizacion);
-
-      if (articulo.moneda_id === MONEDAS.ARS)
-        precio_final_ars = precio_calculado;
-    }
-
-    let precio_final_moneda =
-      articulo.moneda_id === MONEDAS.ARS
-        ? precio_final_ars
-        : precio_final_ars / Number(cotizacion);
-
-    if (precio_final_moneda < Number(articulo.costo)) {
+    if (articulo.moneda_id !== MONEDAS.ARS && !(cotizacion > 0)) {
       throw new ApiError(
-        `El precio final ($${precio_final_moneda}) es menor al costo ($${articulo.costo}) para ${articulo.nombre}`,
+        `No hay cotización activa válida para la moneda del artículo ${articulo.nombre}`,
         400
       );
     }
 
-    const neto_ars = r2(precio_final_ars * item.cantidad);
+    let precio_base_moneda;
+    let precio_unitario_moneda;
+
+    if (item.tipo_ajuste_id === TIPOS_AJUSTE.MANUAL) {
+      const precioManualARS = Number(item.precio_base);
+      if (!Number.isFinite(precioManualARS) || precioManualARS <= 0) {
+        throw new ApiError(
+          `En modo MANUAL, precio_base debe ser un número mayor a 0`,
+          400
+        );
+      }
+      item.porcentaje_ajuste = 0;
+
+      if (articulo.moneda_id === MONEDAS.ARS) {
+        precio_base_moneda = precioManualARS;
+        precio_unitario_moneda = precioManualARS;
+      }
+      if (articulo.moneda_id !== MONEDAS.ARS) {
+        precio_base_moneda = precioManualARS / cotizacion;
+        precio_unitario_moneda = precio_base_moneda;
+      }
+    }
+
+    if (item.tipo_ajuste_id !== TIPOS_AJUSTE.MANUAL) {
+      precio_base_moneda = Number(articulo.precio_venta);
+      if (!Number.isFinite(precio_base_moneda) || precio_base_moneda < 0) {
+        throw new ApiError(
+          `Precio de lista inválido para ${articulo.nombre}`,
+          400
+        );
+      }
+
+      const porc = Number(item.porcentaje_ajuste || 0);
+      if (item.tipo_ajuste_id === TIPOS_AJUSTE.NINGUNO && porc !== 0) {
+        throw new ApiError(
+          `Con ajuste NINGUNO, porcentaje_ajuste debe ser 0`,
+          400
+        );
+      }
+      if (
+        (item.tipo_ajuste_id === TIPOS_AJUSTE.DESCUENTO ||
+          item.tipo_ajuste_id === TIPOS_AJUSTE.RECARGO) &&
+        porc <= 0
+      ) {
+        throw new ApiError(`Debe indicar un porcentaje_ajuste mayor a 0`, 400);
+      }
+
+      precio_unitario_moneda = calcularPrecioUnitario(
+        precio_base_moneda,
+        item.tipo_ajuste_id,
+        porc
+      );
+    }
+
+    if (precio_unitario_moneda < Number(articulo.costo)) {
+      throw new ApiError(
+        `El precio final ($${precio_unitario_moneda}) es menor al costo ($${articulo.costo}) para ${articulo.nombre}`,
+        400
+      );
+    }
+
+    const precio_unitario_ars =
+      articulo.moneda_id === MONEDAS.ARS
+        ? r2(precio_unitario_moneda)
+        : r2(precio_unitario_moneda * cotizacion);
+
+    const neto_ars = r2(precio_unitario_ars * item.cantidad);
+
     const porcentaje_iva =
       articulo.porcentaje_iva != null ? Number(articulo.porcentaje_iva) : null;
-    const iva_ars =
+    const monto_iva =
       porcentaje_iva != null ? r2(neto_ars * (porcentaje_iva / 100)) : 0;
 
     itemsProcesados.push({
       articulo_id: articulo.id,
       cantidad: item.cantidad,
-      precio_final_moneda,
-      precio_final_ars,
-      tipo_ajuste_id: item.tipo_ajuste_id,
-      porcentaje_ajuste: item.porcentaje_ajuste || 0,
-      moneda_id: articulo.moneda_id,
-      tasa_cambio: articulo.moneda_id !== MONEDAS.ARS ? Number(cotizacion) : 1,
-      porcentaje_iva,
-      iva_ars,
+
+      precio_unitario_ars,
       neto_ars,
+
+      precio_unitario_moneda,
+      precio_base_moneda,
+      tipo_ajuste_id: item.tipo_ajuste_id,
+      porcentaje_ajuste: Number(item.porcentaje_ajuste || 0),
+
+      iva_aliquota_id: articulo.iva_aliquota_id,
+      moneda_id: articulo.moneda_id,
+      tasa_cambio: articulo.moneda_id !== MONEDAS.ARS ? cotizacion : 1,
+
+      porcentaje_iva,
+      monto_iva,
+
+      series: item.series ?? [],
     });
   }
 
