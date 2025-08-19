@@ -79,6 +79,8 @@ export async function registrarVenta(data, usuario_id, sucursal_id) {
       items: itemsProcesados,
     });
 
+    // TODO ventas_iva_resumen
+
     for (const item of itemsProcesados) {
       const articulo = await obtenerArticulo(item.articulo_id);
       if (articulo.controla_stock) {
